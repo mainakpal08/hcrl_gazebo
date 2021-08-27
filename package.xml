@@ -11,7 +11,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>gazebo_ros</depend>
-  
+
   <exec_depend>astro_description</exec_depend>
   <exec_depend>dwa_local_planner</exec_depend>
   <exec_depend>fetch_gazebo</exec_depend>
@@ -21,7 +21,10 @@
   <exec_depend>knowledge_representation</exec_depend>
   <exec_depend>moveit_ros</exec_depend>
   <exec_depend>realsense_gazebo_plugin</exec_depend>
-  <exec_depend>uw_fetch_bringup</exec_depend>
+  <exec_depend>stretch_gazebo</exec_depend>
+  <!-- NOTE(8-27-21,nickswalker): Leaving this off so there's fewer source dependencies required -->
+  <!--exec_depend>uw_fetch_bringup</exec_depend-->
+
 
   <export>
     <gazebo_ros plugin_path="${prefix}/lib" gazebo_media_path="${prefix}" gazebo_model_path="${prefix}/models"/>

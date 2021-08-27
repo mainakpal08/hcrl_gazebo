@@ -5,6 +5,7 @@
     <arg name="y" default="0.0" />
     <arg name="z" default="0.0" />
     <arg name="yaw" default="0.0" />
+      <env name="GAZEBO_MODEL_PATH" value="$(find fetch_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)" />
 
     <!-- Setup controllers -->
     <rosparam file="$(find fetch_gazebo)/config/default_controllers.yaml" command="load" />

@@ -1,38 +1,44 @@
 <launch>
   <arg name="initial_pose_x" default="0.0"/>
   <arg name="initial_pose_y" default="0.0"/>
-  <!-- Add fetch_gazebo models to support playground -->
-  <env name="GAZEBO_MODEL_PATH" value="$(find fetch_gazebo)/models:$(find uw_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)" />
+  <env name="GAZEBO_MODEL_PATH" value="$(find uw_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)" />
 
   <arg name="rviz" default="true"/>
   <arg name="gui" default="true"/>
   <arg name="map_file" default="none"/>
   <arg name="world" default="" />
-  <arg name="use_astro" default="true" />
+  <arg name="robot" default="astro" />
 
   <include file="$(find uw_gazebo)/launch/include/common.xml">
     <arg name="gui" value="$(arg gui)" />
     <arg name="world" value="$(arg world)" />
     <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
     <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
-    <arg name="use_astro" value="$(arg use_astro)" />
+    <arg name="robot" value="$(arg robot)" />
   </include>
 
+  <group if="$(eval (robot == 'astro') or (robot == 'fetch'))">
+      <!-- You can turn off navigation by passing 'none' for the map_file arg. This is helpful for mapping. -->
+      <!-- Setting an empty string via the command line doesn't work so we use "none" as a special null value
+           https://answers.ros.org/question/296116/provide-empty-string-as-roslaunch-argument-substitution/
+      -->
+      <include file="$(find uw_fetch_bringup)/launch/navigation.launch" unless="$(eval map_file == 'none')">
+        <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+        <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+        <arg name="map_file" value="$(arg map_file)"/>
+        <arg name="use_fake_localization" value="true"/>
+      </include>
 
-  <!-- You can turn off navigation by passing 'none' for the map_file arg. This is helpful for mapping. -->
-  <!-- Setting an empty string via the command line doesn't work so we use "none" as a special null value
-       https://answers.ros.org/question/296116/provide-empty-string-as-roslaunch-argument-substitution/
-  -->
-  <include file="$(find uw_fetch_bringup)/launch/navigation.launch" unless="$(eval map_file == 'none')">
-    <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
-    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
-    <arg name="map_file" value="$(arg map_file)"/>
-    <arg name="use_fake_localization" value="true"/>
-  </include>
+        <!-- MoveIt -->
+      <include file="$(find fetch_moveit_config)/launch/move_group.launch" />
 
-  <!-- Let the robot move faster than in the real world -->
-  <rosparam file="$(find uw_gazebo)/config/move_base.yaml" ns="move_base" command="load" />
+      <!-- Let the robot move faster than in the real world -->
+      <rosparam file="$(find uw_gazebo)/config/move_base.yaml" ns="move_base" command="load" />
+      </group>
+  <group if="$(eval robot == 'stretch')">
+     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find stretch_gazebo)/config/sim.rviz" if="$(arg rviz)"/>
 
-  <node if="$(arg rviz)" name="rviz" type="rviz" pkg="rviz" args="--display-config $(find uw_fetch_bringup)/config/fetch.rviz" />
+  </group>
+
 
 </launch>
