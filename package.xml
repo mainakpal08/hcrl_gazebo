@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>uw_gazebo</name>
+  <name>hcrl_gazebo</name>
   <version>1.0.0</version>
   <description>
     Worlds
   </description>
   <license>Apache 2.0</license>
-  <maintainer email="robocup@cs.washington.edu">UW RoboCup Contributors</maintainer>
-  <author email="robocup@cs.washington.edu">UW RoboCup Contributors</author>
+  <maintainer email="nswalker@cs.washington.edu">Nick Walker</maintainer>
+  <author email="nswalker@cs.washington.edu">Nick Walker</author>
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>gazebo_ros</depend>
