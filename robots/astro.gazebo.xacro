@@ -1,6 +1,6 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fetch">
     <xacro:include filename="$(find astro_description)/robots/astro.xacro"/>
-    <xacro:include filename="$(find uw_gazebo)/urdf/d415.gazebo.urdf.xacro"/>
+    <xacro:include filename="$(find hcrl_gazebo)/urdf/d415.gazebo.urdf.xacro"/>
     <!-- Add four casters to the base -->
     <xacro:macro name="caster" params="prefix joint_x joint_y">
         <link name="${prefix}_caster_link">

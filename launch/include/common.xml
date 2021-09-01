@@ -26,13 +26,13 @@
 
   <!-- Oh, you wanted a robot? -->
   
-  <include file="$(find uw_gazebo)/launch/include/spawn_fetch.xml" if="$(eval (robot == 'astro') or (robot == 'fetch'))">
+  <include file="$(find hcrl_gazebo)/launch/include/spawn_fetch.xml" if="$(eval (robot == 'astro') or (robot == 'fetch'))">
     <arg name="x" value="$(arg initial_pose_x)" />
     <arg name="y" value="$(arg initial_pose_y)" />
     <arg name="robot" unless="$(arg use_astro)" value="fetch" />
   </include>
   
-  <include file="$(find uw_gazebo)/launch/include/spawn_stretch.xml" if="$(eval robot == 'stretch')">
+  <include file="$(find hcrl_gazebo)/launch/include/spawn_stretch.xml" if="$(eval robot == 'stretch')">
     <arg name="x" value="$(arg initial_pose_x)" />
     <arg name="y" value="$(arg initial_pose_y)" />
     <arg name="robot" value="$(arg robot)" />

@@ -1,6 +1,6 @@
-# uw_gazebo
+# hcrl_gazebo
 
-![CI](https://github.com/homeskies/uw_gazebo/workflows/CI/badge.svg)
+![CI](https://github.com/hcrlab/hcrl_gazebo/workflows/CI/badge.svg)
 
 ![Gazebo01](docs/images/gazebo_01.png)
 
@@ -10,11 +10,11 @@ Contains a fork of [aws_robomaker_small_house_world](https://github.com/aws-robo
 
 In order to simulate the external head camera, you'll need to clone  [PAL Robotics' Gazebo plugin](https://github.com/pal-robotics/realsense_gazebo_plugin) into the workspace. To make sure you have the dependencies
 
-    wstool init <path_to_workspace> <path_to_uw_gazebo>/.rosinstall
+    wstool init <path_to_workspace> <path_to_hcrl_gazebo>/.rosinstall
 
 If you've already run `wstool` in your workspace, merge the new dependencies with
 
-    wstool merge -t <path_to_workspace>/src <path_to_uw_gazebo>/.rosinstall
+    wstool merge -t <path_to_workspace>/src <path_to_hcrl_gazebo>/.rosinstall
     cd src
     wstool update
 
@@ -22,7 +22,7 @@ If you've already run `wstool` in your workspace, merge the new dependencies wit
 
 Launch one of the simulations with
 
-    roslaunch uw_gazebo [house_simulation| playground_simulation].launch
+    roslaunch hcrl_gazebo [house_simulation| playground_simulation].launch
 
 then launch whatever task specific nodes you need separately. Avoid having robot code depend on this package; there are a lot of large binary files in here, and we don't want to have to clone those to the robot (where we'll certainly never use them).
 
@@ -30,7 +30,7 @@ then launch whatever task specific nodes you need separately. Avoid having robot
 
 The example script shows how to add an object to Gazebo through the ROS interface.
 
-    rosrun uw_gazebo house_add_table_objects
+    rosrun hcrl_gazebo house_add_table_objects
 
 ## House: How to Replace Photos in Picture Frames
 
