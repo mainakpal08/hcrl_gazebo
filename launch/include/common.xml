@@ -17,7 +17,11 @@
   </group>
 
   <!-- start world -->
-  <node name="gazebo" pkg="gazebo_ros" type="$(arg gazebo_binary)" args="$(arg world)" respawn="false" output="screen" required="true" />
+  <node name="gazebo" pkg="gazebo_ros" type="$(arg gazebo_binary)" args="$(arg world)" respawn="false" output="screen" required="true" >
+    <remap from="/realsense" to="/camera" if="$(eval (robot == 'stretch') or (robot == 'forky'))" />
+    <remap from="/joint_states" to="/stretch/joint_states" if="$(eval (robot == 'stretch') or (robot == 'forky'))" />
+    <remap from="/stretch_diff_drive_controller/cmd_vel" to="/stretch/cmd_vel" if="$(eval (robot == 'stretch') or (robot == 'forky'))" />
+  </node>
 
   <!-- start gui -->
   <group if="$(arg gui)">
@@ -32,7 +36,7 @@
     <arg name="robot" unless="$(arg use_astro)" value="fetch" />
   </include>
   
-  <include file="$(find hcrl_gazebo)/launch/include/spawn_stretch.xml" if="$(eval robot == 'stretch')">
+  <include file="$(find hcrl_gazebo)/launch/include/spawn_stretch.xml" if="$(eval (robot == 'stretch') or (robot == 'forky'))">
     <arg name="x" value="$(arg initial_pose_x)" />
     <arg name="y" value="$(arg initial_pose_y)" />
     <arg name="robot" value="$(arg robot)" />

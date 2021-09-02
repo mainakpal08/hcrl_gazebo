@@ -1,6 +1,6 @@
 <launch>
 
-    <arg name="robot" default="astro" />
+    <arg name="robot" default="forky" />
     <arg name="x" default="0.0" />
     <arg name="y" default="0.0" />
     <arg name="z" default="0.0" />
@@ -8,12 +8,14 @@
     <arg name="gui" default="true"/>
     <arg name="headless" default="false"/>
     <arg name="debug" default="false"/>
-    <arg name="model" default="$(find stretch_gazebo)/urdf/stretch_gazebo.urdf.xacro"/>
+    <arg name="model" default=""/>
     <arg name="gpu_lidar" default="false"/>
     <arg name="visualize_lidar" default="false"/>
 
 
-  <param name="robot_description" command="$(find xacro)/xacro $(arg model) gpu_lidar:=$(arg gpu_lidar) visualize_lidar:=$(arg visualize_lidar)" />
+  <param name="robot_description" command="$(find xacro)/xacro $(find stretch_gazebo)/urdf/stretch_gazebo.urdf.xacro gpu_lidar:=$(arg gpu_lidar) visualize_lidar:=$(arg visualize_lidar)" if="$(eval robot == 'stretch')"/>
+
+    <param name="robot_description" command="$(find xacro)/xacro $(find hcrl_gazebo)/robots/forky.gazebo.xacro gpu_lidar:=$(arg gpu_lidar) visualize_lidar:=$(arg visualize_lidar)" if="$(eval robot == 'forky')"/>
 
   <!-- push robot_description to factory and spawn robot in gazebo -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
@@ -21,6 +23,7 @@
 
   <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
     <param name="publish_frequency" type="double" value="30.0" />
+      <remap from="/joint_states" to="/stretch/joint_states" />
   </node>
 
 
@@ -44,7 +47,7 @@
   <node name="stretch_controller_spawner" pkg="controller_manager" type="spawner"
         args="stretch_joint_state_controller stretch_diff_drive_controller stretch_arm_controller stretch_head_controller stretch_gripper_controller"/>
 
-  <node name="publish_ground_truth_odom" pkg="stretch_gazebo" type="publish_ground_truth_odom.py" output="screen"/>
+  <node name="publish_ground_truth_odom" pkg="stretch_gazebo" type="publish_ground_truth_odom.py" output="screen" if="$(eval robot == 'stretch')"/>
 
 
 </launch>
