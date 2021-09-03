@@ -33,10 +33,10 @@
       <include file="$(find fetch_moveit_config)/launch/move_group.launch" />
 
       <!-- Let the robot move faster than in the real world -->
-      <rosparam file="$(find hcrl_gazebo)/config/move_base.yaml" ns="move_base" command="load" />
+      <rosparam file="$(find hcrl_gazebo)/config/fetch/move_base.yaml" ns="move_base" command="load" />
       </group>
   <group if="$(eval (robot == 'stretch') or (robot == 'forky'))">
-     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find stretch_gazebo)/config/sim.rviz" if="$(arg rviz)"/>
+     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find hcrl_gazebo)/config/stretch.rviz" if="$(arg rviz)"/>
 
     <include file="$(find hcrl_gazebo)/launch/stretch_navigation.launch" >
         <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
