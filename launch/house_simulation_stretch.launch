@@ -1,9 +1,10 @@
 <launch>
   <arg name="map_file" default="$(find hcrl_gazebo)/maps/house/map.yaml"/>
+  <arg name="robot" default="forky"/>
   <include file="$(find hcrl_gazebo)/launch/empty_simulation.launch">
     <arg name="map_file" value="$(arg map_file)"/>
     <arg name="world" value="$(find hcrl_gazebo)/worlds/house.world" />
-    <arg name="robot" value="forky"/>
+    <arg name="robot" value="$(arg robot)"/>
     <arg name="initial_pose_x" value="3.5"/>
     <arg name="initial_pose_y" value="1.0"/>
   </include>

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-while rosservice call /gazebo/get_model_state '{model_name: fetch}' | grep 'success: False'; do sleep 1; done
+# Check if we've got a robot spawned yet
+while (rosservice call /gazebo/get_model_state '{model_name: fetch}' | grep 'success: False') && (rosservice call /gazebo/get_model_state '{model_name: robot}' | grep 'success: False'); do sleep 1; done
 
 spawn(){
   local name="$1"
