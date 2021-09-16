@@ -38,9 +38,9 @@
     </visual>
 
     <inertial>
-      <mass value="1e-5" />
+      <mass value="0" />
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
     </inertial>
   </link>
 
@@ -74,9 +74,9 @@
     </visual>
 
     <inertial>
-      <mass value="1e-5" />
+      <mass value="0" />
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
     </inertial>
   </link>
 
@@ -743,7 +743,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_gripper_finger_left">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
   </transmission>
   <transmission name="trans_gripper_finger_right">
@@ -752,7 +752,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_gripper_finger_right">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
 </transmission>
 
