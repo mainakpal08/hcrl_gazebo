@@ -9,4 +9,9 @@
     <arg name="initial_pose_y" value="1.0"/>
   </include>
     <node name="load_map_annotations" pkg="knowledge_representation" type="populate_with_map" args="$(find hcrl_gazebo)/maps/house/map.yaml"/>
+
+    <node name="rail_segmentation" pkg="rail_segmentation" type="rail_segmentation">
+        <param name="point_cloud_topic" value="/camera/depth/color/points"/>
+        <param name="zones_config" value="$(find hcrl_gazebo)/config/stretch/segmentation_zones.yaml" />
+    </node>
 </launch>
