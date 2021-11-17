@@ -86,8 +86,10 @@
 
 
   <gazebo>
-    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <plugin name="gazebo_ros_control" filename="libhcrl_gazebo_ros_control_plugin.so">
+      <robotSimType>hcrl_gazebo/StretchHardwareGazebo</robotSimType>
       <robotNamespace>/</robotNamespace>
+      <eStopTopic>estop</eStopTopic>
     </plugin>
   </gazebo>
 
@@ -530,7 +532,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_lift">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
   </transmission>
 
@@ -586,7 +588,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_arm_l0">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
   </transmission>
   <transmission name="trans_arm_l1">
@@ -595,7 +597,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_arm_l1">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
   </transmission>
   <transmission name="trans_arm_l2">
@@ -604,7 +606,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_arm_l2">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
   </transmission>
   <transmission name="trans_arm_l3">
@@ -613,7 +615,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_arm_l3">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
   </transmission>
 
@@ -633,7 +635,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_wrist_yaw">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
   </transmission>
 
@@ -668,7 +670,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_head_pan">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
   </transmission>
 
@@ -678,7 +680,7 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
     <joint name="joint_head_tilt">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
   </transmission>
 
@@ -758,18 +760,18 @@
 
 <!-- Ground Truth Odom plugin -->
 
-    <!-- Load the plugin -->
-    <gazebo>
-        <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
-          <alwaysOn>true</alwaysOn>
-          <updateRate>100.0</updateRate>
-          <bodyName>base_link</bodyName>
-          <topicName>odom_ground_truth</topicName>
-          <gaussianNoise>0.01</gaussianNoise>
-          <frameName>world</frameName>
-          <xyzOffsets>0 0 0</xyzOffsets>
-          <rpyOffsets>0 0 0</rpyOffsets>
-        </plugin>
-    </gazebo>
+  <!-- Ground Truth Odom plugin -->
+  <gazebo>
+    <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>25.0</updateRate>
+      <bodyName>base_link</bodyName>
+      <topicName>ground_truth</topicName>
+      <gaussianNoise>0.01</gaussianNoise>
+      <frameName>world</frameName>
+      <xyzOffsets>0 0 0</xyzOffsets>
+      <rpyOffsets>0 0 0</rpyOffsets>
+    </plugin>
+  </gazebo>
 
 </robot>

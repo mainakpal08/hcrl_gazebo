@@ -16,10 +16,11 @@
     <param name="/use_sim_time" value="true" />
   </group>
 
-  <!-- start world -->
-  <node name="gazebo" pkg="gazebo_ros" type="$(arg gazebo_binary)" args="$(arg world)" respawn="false" output="screen" required="true" >
+  <!-- start world (-u to start paused, allowing robot spawn to set initial joint configurations -->
+  <node name="gazebo" pkg="gazebo_ros" type="$(arg gazebo_binary)" args="$(arg world) -u" respawn="false" output="screen" required="true" >
     <remap from="/joint_states" to="/stretch/joint_states" if="$(eval (robot == 'stretch') or (robot == 'forky'))" />
     <remap from="/stretch_diff_drive_controller/cmd_vel" to="/stretch/cmd_vel" if="$(eval (robot == 'stretch') or (robot == 'forky'))" />
+    <remap from="/stretch_diff_drive_controller/odom" to="/odom" if="$(eval (robot == 'stretch') or (robot == 'forky'))" />
   </node>
 
   <!-- start gui -->
