@@ -26,10 +26,10 @@ stretch_controller_raw:
     joint_head_pan: {p: 10, d: 1, i: 0, i_clamp: 1}
     joint_head_tilt: {p: 10, d: 1, i: 0, i_clamp: 1}
     joint_lift: {p: 500, d: 100, i: 0, i_clamp: 1}
-    joint_arm_l3: {p: 100, d: 30, i: 0, i_clamp: 1}
-    joint_arm_l2: {p: 100, d: 30, i: 0, i_clamp: 1}
-    joint_arm_l1: {p: 100, d: 30, i: 0, i_clamp: 1}
-    joint_arm_l0: {p: 100, d: 30, i: 0, i_clamp: 1}
-    joint_wrist_yaw: {p: 100, d: 1, i: 0, i_clamp: 1}
+    joint_arm_l3: {p: 50, d: 30, i: 0, i_clamp: 1}
+    joint_arm_l2: {p: 50, d: 30, i: 0, i_clamp: 1}
+    joint_arm_l1: {p: 50, d: 30, i: 0, i_clamp: 1}
+    joint_arm_l0: {p: 50, d: 30, i: 0, i_clamp: 1}
+    joint_wrist_yaw: {p: 50, d: 1, i: 0, i_clamp: 1}
     joint_gripper_finger_right: {p: 100, d: 1, i: 0, i_clamp: 1}
     joint_gripper_finger_left: {p: 100, d: 1, i: 0, i_clamp: 1}
