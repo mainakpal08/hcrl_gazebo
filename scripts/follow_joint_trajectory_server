@@ -1,25 +1,55 @@
 #! /usr/bin/env python
 # We'll let the usual joint_trajectory_controller provide the actual trajectory following and control, but we need to hack in Stretch's virtual joints.
 # https://github.com/ros-controls/ros_controllers/blob/noetic-devel/joint_trajectory_controller/include/joint_trajectory_controller/joint_trajectory_controller_impl.h
-import threading
-
-import rospy
-
-import actionlib
-
-import control_msgs.msg
-from control_msgs.msg import FollowJointTrajectoryResult
-from geometry_msgs.msg import Twist
-
-
-import actionlib
-import copy
-import geometry_msgs.msg
 import math
+import threading
+from copy import deepcopy
+
+import actionlib
+import control_msgs.msg
+import geometry_msgs.msg
 import nav_msgs.msg
 import numpy as np
 import rospy
 import tf.transformations as tft
+from control_msgs.msg import FollowJointTrajectoryResult, FollowJointTrajectoryGoal
+
+
+def clamp(num, min_value, max_value):
+    return max(min(num, max_value), min_value)
+
+
+def shortest_angular_distance(x, y):
+    return math.atan2(math.sin(x - y), math.cos(x - y))
+
+
+def rotation_matrix(theta):
+    """Construct a rotation matrix from a given angle.
+
+    Args:
+      theta: Angle (radians)
+
+    Returns:
+      The equivalent 2x2 rotation matrix as a np.array
+    """
+    c, s = np.cos(theta), np.sin(theta)
+    return np.array([[c, -s], [s, c]])
+
+
+def push_out_of_zero_region(value, bound):
+    if value > 0:
+        return max(bound, value)
+    else:
+        return min(-bound, value)
+
+
+def pose_to_vec(pose):
+    return np.array([pose.position.x, pose.position.y, yaw_from_quaternion(pose.orientation)])
+
+
+def yaw_from_quaternion(q):
+    m = tft.quaternion_matrix([q.x, q.y, q.z, q.w])
+    return math.atan2(m[1, 0], m[0, 0])
 
 
 class MobileBase(object):
@@ -66,50 +96,66 @@ class MobileBase(object):
     def translate_async(self, distance):
         def translate_task():
             self.translate(distance)
+
         self.current_task = threading.Thread(target=translate_task)
-        self.current_task.start()
         return self.current_task
 
     def rotate_async(self, distance):
         def rotate_task():
-            self.rotate_controlled(distance)
+            self.rotate(distance, 1)
+
         self.current_task = threading.Thread(target=rotate_task)
-        self.current_task.start()
         return self.current_task
 
-    def translate(self, distance, speed=0.1):
+    def translate(self, distance, speed=0.2):
         """Moves the robot a certain distance.
-
-        It's recommended that the robot move slowly. If the robot moves too
-        quickly, it may overshoot the target. Note also that this method does
-        not know if the robot's path is perturbed (e.g., by teleop). It stops
-        once the distance traveled is equal to the given distance.
 
         You cannot use this method to move less than 1 cm.
 
         Args:
-            distance: The distance, in meters, to rotate. A positive value
+            distance: The distance, in meters, to translate. A positive value
                 means forward, negative means backward.
             max_speed: The maximum speed to travel, in meters/second.
         """
+        target = distance
         while self.odom is None:
             rospy.sleep(0.1)
-        start = copy.deepcopy(self.odom)
+        start = pose_to_vec(self.odom)
         rate = rospy.Rate(25)
-        distance_from_start = self._linear_distance(start, self.odom)
-        while distance_from_start < math.fabs(distance):
-            distance_from_start = self._linear_distance(start, self.odom)
-            if distance_from_start >= math.fabs(distance):
+        heading = None
+        while not rospy.is_shutdown():
+            if heading is None:
+                # Assume we have to go the full distance at this point
+                error = distance
+                # See if we've travelled far enough to tell which direction we're going
+                diff = pose_to_vec(self.odom) - start
+                if np.linalg.norm(diff, 2) > 0.01:
+                    # Angle relating odom and base_link frames... but saving
+                    # the hassle of juggling TF and transforms
+                    heading = math.atan2(diff[1], diff[0])
+                    if distance < 0:
+                        # If we're moving backwards, the origin of the frame is
+                        # the opposite direction to our movement vector
+                        heading += math.pi
+                    heading = rotation_matrix(heading)
+            else:
+                current_pose = pose_to_vec(self.odom)
+                out = current_pose[:]
+                # Make the start point the origin
+                out[[0, 1]] -= start[[0, 1]]
+                # ... and rotate the axes so that X points toward the front of the robot (base_link)
+                out = np.matmul(out[[0, 1]], heading)
+                # We want to be at target meters, but we're currently at out[0]
+                error = target - out[0]
+            if math.fabs(error) < 0.01:
                 return
-            direction = -1 if distance < 0 else 1
-            self.move(direction * speed, 0)
+            command = clamp(error, -speed, speed)
+            command = push_out_of_zero_region(command, 0.04)
+            self.move(command, 0)
             rate.sleep()
 
-    def rotate(self, angular_distance, speed=1):
+    def rotate(self, angular_distance, speed=0.5):
         """Rotates the robot a certain angle.
-
-        This illustrates how to turn the robot by checking that the X-axis of
-        the robot matches that of the goal.
 
         Args:
             angular_distance: The angle, in radians, to rotate. A positive
@@ -118,48 +164,21 @@ class MobileBase(object):
         """
         while self.odom is None:
             rospy.sleep(0.1)
-        direction = -1 if angular_distance < 0 else 1
 
-        current_yaw = self._yaw_from_quaternion(self.odom.orientation)
-        goal_yaw = current_yaw + angular_distance
-        goal_x_axis = np.array([math.cos(goal_yaw), math.sin(goal_yaw), 0])
-
-        rate = rospy.Rate(100)
-        x_axis = self._x_axis_from_quaternion(self.odom.orientation)
-        while not np.allclose(x_axis, goal_x_axis, atol=0.01):
-            self.move(0, direction * speed)
-            x_axis = self._x_axis_from_quaternion(self.odom.orientation)
-            rate.sleep()
-
-    def rotate_controlled(self, angular_distance, speed=0.5):
-        """Rotates the robot a certain angle.
-
-        This illustrates how to turn the robot using yaw angles and careful
-        accounting.
-
-        Args:
-            angular_distance: The angle, in radians, to rotate. A positive
-                value rotates counter-clockwise.
-            speed: The maximum angular speed to rotate, in radians/second.
-        """
-        while self.odom is None:
-            rospy.sleep(0.1)
-        direction = -1 if angular_distance < 0 else 1
-
-        current_coord = self._yaw_from_quaternion(self.odom.orientation) % (
-            2 * math.pi)
+        current_coord = yaw_from_quaternion(self.odom.orientation) % (
+                2 * math.pi)
         end_coord = (current_coord + angular_distance) % (2 * math.pi)
         rate = rospy.Rate(25)
 
         while not rospy.is_shutdown():
-            current_coord = self._yaw_from_quaternion(
+            current_coord = yaw_from_quaternion(
                 self.odom.orientation) % (2 * math.pi)
-            remaining = (direction *
-                         (end_coord - current_coord)) % (2 * math.pi)
-            if remaining < 0.01:
+            error = shortest_angular_distance(current_coord, end_coord)
+            if abs(error) < 0.01:
                 return
-            speed = max(0.25, min(1, remaining))
-            self.move(0, direction * speed)
+            command = clamp(error, -1, 1)
+            command = push_out_of_zero_region(command, 0.25)
+            self.move(0, speed * -command)
             rate.sleep()
 
     def stop(self):
