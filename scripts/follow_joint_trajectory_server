@@ -189,34 +189,39 @@ class MobileBase(object):
     def _odom_callback(self, msg):
         self.odom = msg.pose.pose
 
-    @staticmethod
-    def _linear_distance(pose1, pose2):
-        pos1 = pose1.position
-        pos2 = pose2.position
-        dx = pos1.x - pos2.x
-        dy = pos1.y - pos2.y
-        dz = pos1.z - pos2.z
-        return math.sqrt(dx * dx + dy * dy + dz * dz)
 
-    @staticmethod
-    def _x_axis_from_quaternion(q):
-        m = tft.quaternion_matrix([q.x, q.y, q.z, q.w])
-        return m[:3, 0]  # First column
+def remove_joint_in_trajectory(joint_name, trajectory):
+    modified = deepcopy(trajectory)
+    to_remove = trajectory.joint_names.index(joint_name)
+    modified.joint_names.remove(joint_name)
 
-    @staticmethod
-    def _yaw_from_quaternion(q):
-        m = tft.quaternion_matrix([q.x, q.y, q.z, q.w])
-        return math.atan2(m[1, 0], m[0, 0])
-
-    @staticmethod
-    def _angular_distance(pose1, pose2):
-        q1 = pose1.orientation
-        q2 = pose2.orientation
-        y1 = MobileBase._yaw_from_quaternion(q1)
-        y2 = MobileBase._yaw_from_quaternion(q2)
-        return math.fabs(y1 - y2) % (2 * math.pi)
+    for i in range(len(trajectory.points)):
+        prev_positions = trajectory.points[i].positions
+        prev_velocities = trajectory.points[i].velocities
+        prev_efforts = trajectory.points[i].effort
+        modified.points[i].positions = prev_positions[0:to_remove] + prev_positions[
+                                                                     to_remove + 1:]
+        modified.points[i].velocities = prev_velocities[0:to_remove] + prev_velocities[
+                                                                       to_remove + 1:]
+        modified.points[i].effort = prev_efforts[0:to_remove] + prev_efforts[
+                                                                to_remove + 1:]
+    return modified
 
 
+def add_joints_in_trajectory(joint_names, trajectory, positions=None, velocities=None, efforts=None):
+    modified = deepcopy(trajectory)
+    modified.joint_names += joint_names
+    for i in range(len(trajectory.points)):
+        if positions:
+            modified.points[i].positions = tuple(
+                list(modified.points[i].positions) + positions[i])
+        if velocities:
+            modified.points[i].velocities = tuple(
+                list(modified.points[i].velocities) + velocities[i])
+        if efforts:
+            modified.points[i].efforts = tuple(
+                list(modified.points[i].efforts) + efforts[i])
+    return modified
 
 
 class FollowJointTrajectoryServer(object):
@@ -226,13 +231,15 @@ class FollowJointTrajectoryServer(object):
 
     def __init__(self, name):
         self._action_name = name
-        self._client =  actionlib.SimpleActionClient('/stretch_controller_raw/follow_joint_trajectory', control_msgs.msg.FollowJointTrajectoryAction)
+        self._client = actionlib.SimpleActionClient('/stretch_controller_raw/follow_joint_trajectory',
+                                                    control_msgs.msg.FollowJointTrajectoryAction)
         connected = self._client.wait_for_server(rospy.Duration(10.0))
         if not connected:
             rospy.logerr("Couldn't connect to raw follow_joint_trajectory interface")
             exit(1)
         self.base = MobileBase()
-        self._as = actionlib.SimpleActionServer(self._action_name, control_msgs.msg.FollowJointTrajectoryAction, execute_cb=self.execute_cb, auto_start = False)
+        self._as = actionlib.SimpleActionServer(self._action_name, control_msgs.msg.FollowJointTrajectoryAction,
+                                                execute_cb=self.execute_cb, auto_start=False)
         self._as.start()
 
     def execute_cb(self, goal):
@@ -240,46 +247,44 @@ class FollowJointTrajectoryServer(object):
             # print(feedback_msg)
             self._as.publish_feedback(feedback_msg)
 
-        # TODO: intercept base incremental mode commands and run the control here. Does the real robot return immediately or wait for the base to finish?
         rospy.loginfo(goal.trajectory.joint_names)
+        rospy.loginfo(goal.trajectory.points[0].positions)
+        modified = goal.trajectory
         base_task = None
-        if "joint_gripper_finger_left" in goal.trajectory.joint_names and not "joint_gripper_finger_right" in goal.trajectory.joint_names:
-            joint_index = goal.trajectory.joint_names.index("joint_gripper_finger_left")
-            goal.trajectory.joint_names.append("joint_gripper_finger_right")
-            goal_point = goal.trajectory.points[0]
-            goal.trajectory.points[0].positions = tuple(list(goal_point.positions) + [goal_point.positions[joint_index]])
-        if "translate_mobile_base" in goal.trajectory.joint_names:
+        if "gripper_aperture" in modified.joint_names:
+            original_target = goal.trajectory.points[0].positions[goal.trajectory.joint_names.index("gripper_aperture")]
+            modified = remove_joint_in_trajectory("gripper_aperture", modified)
+            as_finger_target = original_target * 2.24
+            modified = add_joints_in_trajectory(["joint_gripper_finger_right", "joint_gripper_finger_left"], modified,
+                                                positions=[[as_finger_target, as_finger_target]])
+        if "joint_gripper_finger_left" in modified.joint_names and not "joint_gripper_finger_right" in modified.joint_names:
+            joint_index = modified.joint_names.index("joint_gripper_finger_left")
+            goal_point = modified.points[0]
+            modified = add_joints_in_trajectory(["joint_gripper_finger_right"], modified,
+                                                positions=[[goal_point.positions[joint_index]]])
+        if "translate_mobile_base" in modified.joint_names:
             base_joint_index = goal.trajectory.joint_names.index("translate_mobile_base")
             base_task = self.base.translate_async(goal.trajectory.points[0].positions[base_joint_index])
-            goal.trajectory.joint_names.remove("translate_mobile_base")
-            prev_positions = goal.trajectory.points[0].positions
-            prev_velocities = goal.trajectory.points[0].velocities
-            prev_efforts = goal.trajectory.points[0].effort
-            goal.trajectory.points[0].positions = prev_positions[0:base_joint_index] + prev_positions[base_joint_index + 1:-1]
-            goal.trajectory.points[0].velocities = prev_velocities[0:base_joint_index] + prev_velocities[base_joint_index + 1:-1]
-            goal.trajectory.points[0].effort = prev_efforts[0:base_joint_index] + prev_efforts[base_joint_index + 1:-1]
-        elif "rotate_mobile_base" in goal.trajectory.joint_names:
-            base_joint_index = goal.trajectory.joint_names.index("rotate_mobile_base")
+            modified = remove_joint_in_trajectory("translate_mobile_base", modified)
+        elif "rotate_mobile_base" in modified.joint_names:
+            base_joint_index = modified.joint_names.index("rotate_mobile_base")
             base_task = self.base.rotate_async(goal.trajectory.points[0].positions[base_joint_index])
-            goal.trajectory.joint_names.remove("rotate_mobile_base")
-            prev_positions = goal.trajectory.points[0].positions
-            prev_velocities = goal.trajectory.points[0].velocities
-            prev_efforts = goal.trajectory.points[0].effort
-            goal.trajectory.points[0].positions = prev_positions[0:base_joint_index] + prev_positions[base_joint_index + 1:-1]
-            goal.trajectory.points[0].velocities = prev_velocities[0:base_joint_index] + prev_velocities[base_joint_index + 1:-1]
-            goal.trajectory.points[0].effort = prev_efforts[0:base_joint_index] + prev_efforts[base_joint_index + 1:-1]
-        if "wrist_extension" in goal.trajectory.joint_names:
-            # Assume just wrist extension joint in traj for now
-            goal_point = goal.trajectory.points[0]
-            orig_goal_position = goal_point.positions[0]
-            goal.trajectory.joint_names = ["joint_arm_l0","joint_arm_l1","joint_arm_l2","joint_arm_l3"]
-            goal_point.positions = [orig_goal_position / 4.0 for i in range(4)]
+            modified = remove_joint_in_trajectory("rotate_mobile_base", modified)
+        if "wrist_extension" in modified.joint_names:
+            extension_joint_index = modified.joint_names.index("wrist_extension")
+            orig_goal_position = modified.points[0].positions[extension_joint_index]
+            modified = remove_joint_in_trajectory("wrist_extension", modified)
+            modified = add_joints_in_trajectory(["joint_arm_l0", "joint_arm_l1", "joint_arm_l2", "joint_arm_l3"],
+                                                modified, positions=[[orig_goal_position / 4.0 for i in range(4)]])
 
         # Check if we still have stuff for the main controller to execute
-        main_controller_needed = len(goal.trajectory.joint_names) > 0
+        main_controller_needed = len(modified.joint_names) > 0
         if main_controller_needed:
-            self._client.send_goal(goal, feedback_cb=relay_feedback)
+            self._client.send_goal(FollowJointTrajectoryGoal(trajectory=modified), feedback_cb=relay_feedback)
+            # The simulator has these finish wayyy too quickly
+            # rospy.sleep(0.75)
         if base_task:
+            base_task.start()
             base_task.join()
         if main_controller_needed:
             done = self._client.wait_for_result()
@@ -287,6 +292,7 @@ class FollowJointTrajectoryServer(object):
         else:
             result = FollowJointTrajectoryResult()
             result.error_code = FollowJointTrajectoryResult.SUCCESSFUL
+
         if result.error_code == FollowJointTrajectoryResult.SUCCESSFUL:
             self._as.set_succeeded(result)
         else:
