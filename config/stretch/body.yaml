@@ -15,7 +15,9 @@ stretch_controller_raw:
 
   constraints:
     goal_time: 0.6
-    stopped_velocity_tolerance: 0.05
+    # Non-zero values for this tolerance lead to goal
+    # failures for some reason...
+    stopped_velocity_tolerance: 0
 
     stop_trajectory_duration: 0.5
     state_publish_rate:  25
@@ -30,6 +32,6 @@ stretch_controller_raw:
     joint_arm_l2: {p: 50, d: 30, i: 0, i_clamp: 1}
     joint_arm_l1: {p: 50, d: 30, i: 0, i_clamp: 1}
     joint_arm_l0: {p: 50, d: 30, i: 0, i_clamp: 1}
-    joint_wrist_yaw: {p: 50, d: 1, i: 0, i_clamp: 1}
-    joint_gripper_finger_right: {p: 100, d: 1, i: 0, i_clamp: 1}
-    joint_gripper_finger_left: {p: 100, d: 1, i: 0, i_clamp: 1}
+    joint_wrist_yaw: {p: 1, d: 1, i: 0, i_clamp: 1}
+    joint_gripper_finger_right: {p: 2, d: 1, i: 0, i_clamp: 1}
+    joint_gripper_finger_left: {p: 2, d: 1, i: 0, i_clamp: 1}

@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # We'll let the usual joint_trajectory_controller provide the actual trajectory following and control, but we need to hack in Stretch's virtual joints.
 # https://github.com/ros-controls/ros_controllers/blob/noetic-devel/joint_trajectory_controller/include/joint_trajectory_controller/joint_trajectory_controller_impl.h
+import time
+
 import math
 import threading
 from copy import deepcopy
@@ -11,6 +13,7 @@ import geometry_msgs.msg
 import nav_msgs.msg
 import numpy as np
 import rospy
+import sensor_msgs.msg
 import tf.transformations as tft
 from control_msgs.msg import FollowJointTrajectoryResult, FollowJointTrajectoryGoal
 
@@ -73,7 +76,7 @@ class MobileBase(object):
             'odom',
             nav_msgs.msg.Odometry,
             callback=self._odom_callback,
-            queue_size=10)
+            queue_size=1)
         self.odom = None
         self.finished_event = None
         self.current_task = None
@@ -147,7 +150,9 @@ class MobileBase(object):
                 out = np.matmul(out[[0, 1]], heading)
                 # We want to be at target meters, but we're currently at out[0]
                 error = target - out[0]
-            if math.fabs(error) < 0.01:
+            if math.fabs(error) < 0.005:
+                self.move(0, 0)
+                rate.sleep()
                 return
             command = clamp(error, -speed, speed)
             command = push_out_of_zero_region(command, 0.04)
@@ -238,9 +243,36 @@ class FollowJointTrajectoryServer(object):
             rospy.logerr("Couldn't connect to raw follow_joint_trajectory interface")
             exit(1)
         self.base = MobileBase()
+        self.joint_names = None
+        self.joint_states = None
+        self.prev_joint_states = None
+        self._joint_states_sub = rospy.Subscriber(
+            'joint_states',
+            sensor_msgs.msg.JointState,
+            callback=self._joints_callback,
+            queue_size=1)
         self._as = actionlib.SimpleActionServer(self._action_name, control_msgs.msg.FollowJointTrajectoryAction,
                                                 execute_cb=self.execute_cb, auto_start=False)
         self._as.start()
+
+    def _joints_callback(self, joints_msg):
+        if not self.joint_names:
+            self.joint_names = joints_msg.name
+        self.prev_joint_states = self.joint_states
+        self.joint_states = np.array(joints_msg.position)
+
+    def wait_for_joints_stop(self, joint_indices):
+        def wait_task():
+            # The lift joint takes a bit to ramp up
+            time.sleep(0.1)
+            while not rospy.is_shutdown():
+                diff = np.linalg.norm(self.joint_states[joint_indices] - self.prev_joint_states[joint_indices])
+                print(diff)
+                if diff < 0.001:
+                    break
+                time.sleep(0.1)
+
+        return threading.Thread(target=wait_task)
 
     def execute_cb(self, goal):
         def relay_feedback(feedback_msg):
@@ -254,6 +286,8 @@ class FollowJointTrajectoryServer(object):
         if "gripper_aperture" in modified.joint_names:
             original_target = goal.trajectory.points[0].positions[goal.trajectory.joint_names.index("gripper_aperture")]
             modified = remove_joint_in_trajectory("gripper_aperture", modified)
+            # HACK: Opening wider than this causes the model to shake
+            original_target = min(original_target, 0.3)
             as_finger_target = original_target * 2.24
             modified = add_joints_in_trajectory(["joint_gripper_finger_right", "joint_gripper_finger_left"], modified,
                                                 positions=[[as_finger_target, as_finger_target]])
@@ -282,13 +316,15 @@ class FollowJointTrajectoryServer(object):
         if main_controller_needed:
             self._client.send_goal(FollowJointTrajectoryGoal(trajectory=modified), feedback_cb=relay_feedback)
             # The simulator has these finish wayyy too quickly
-            # rospy.sleep(0.75)
+            wait_stop_task = self.wait_for_joints_stop([self.joint_names.index(joint_name) for joint_name in modified.joint_names])
+            wait_stop_task.start()
         if base_task:
             base_task.start()
             base_task.join()
         if main_controller_needed:
             done = self._client.wait_for_result()
             result = self._client.get_result()
+            wait_stop_task.join()
         else:
             result = FollowJointTrajectoryResult()
             result.error_code = FollowJointTrajectoryResult.SUCCESSFUL
