@@ -52,6 +52,10 @@
   <node name="unpause_after_wait" pkg="hcrl_gazebo" type="unpause_after_wait" output="screen" />
   <node name="follow_joint_trajectory_server" pkg="hcrl_gazebo" type="follow_joint_trajectory_server" output="screen" if="$(eval robot == 'forky')"/>
 
+  <node name="fake_realsense_modes" pkg="hcrl_gazebo" type="fake_realsense_modes">
+    <param name="initial_mode" value="Default" />
+  </node>
+
     <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
   <!--include file="$(find stretch_moveit_config)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>

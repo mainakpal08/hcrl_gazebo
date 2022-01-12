@@ -59,5 +59,5 @@ install (FILES hcrl_gazebo_plugins.xml
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 
-catkin_install_python(PROGRAMS scripts/follow_joint_trajectory_server scripts/unpause_after_wait
+catkin_install_python(PROGRAMS scripts/fake_realsense_modes scripts/follow_joint_trajectory_server scripts/unpause_after_wait
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
