@@ -8,6 +8,7 @@
   <arg name="map_file" default="none"/>
   <arg name="world" default="" />
   <arg name="robot" default="astro" />
+  <arg name="use_navigation" default="true" />
 
   <include file="$(find hcrl_gazebo)/launch/include/common.xml">
     <arg name="gui" value="$(arg gui)" />
@@ -22,7 +23,7 @@
       <!-- Setting an empty string via the command line doesn't work so we use "none" as a special null value
            https://answers.ros.org/question/296116/provide-empty-string-as-roslaunch-argument-substitution/
       -->
-      <include file="$(find uw_fetch_bringup)/launch/navigation.launch" unless="$(eval map_file == 'none')">
+      <include file="$(find uw_fetch_bringup)/launch/navigation.launch" unless="$(eval map_file == 'none' or not use_navigation)">
         <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
         <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
         <arg name="map_file" value="$(arg map_file)"/>
@@ -38,7 +39,7 @@
   <group if="$(eval (robot == 'stretch') or (robot == 'forky'))">
      <node name="rviz" pkg="rviz" type="rviz" args="-d $(find hcrl_gazebo)/config/stretch.rviz" if="$(arg rviz)"/>
 
-    <include file="$(find hcrl_gazebo)/launch/stretch_navigation.launch" >
+    <include file="$(find hcrl_gazebo)/launch/stretch_navigation.launch" if="$(arg use_navigation)" >
         <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
         <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
         <arg name="map_file" value="$(arg map_file)"/>
