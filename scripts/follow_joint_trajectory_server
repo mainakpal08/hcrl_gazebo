@@ -15,6 +15,7 @@ import numpy as np
 import rospy
 import sensor_msgs.msg
 import tf.transformations as tft
+import trajectory_msgs.msg
 from control_msgs.msg import FollowJointTrajectoryResult, FollowJointTrajectoryGoal
 
 
@@ -80,6 +81,7 @@ class MobileBase(object):
         self.odom = None
         self.finished_event = None
         self.current_task = None
+        self.stopped = False
 
     def move(self, linear_speed, angular_speed):
         """Moves the base instantaneously at given linear and angular speeds.
@@ -96,16 +98,20 @@ class MobileBase(object):
         twist.angular.z = angular_speed
         self._velocity_publisher.publish(twist)
 
-    def translate_async(self, distance):
+    def translate_async(self, distance, velocity):
+        if velocity is None:
+            velocity =  .4
         def translate_task():
-            self.translate(distance)
+            self.translate(distance, velocity)
 
         self.current_task = threading.Thread(target=translate_task)
         return self.current_task
 
-    def rotate_async(self, distance):
+    def rotate_async(self, distance, velocity):
+        if velocity is None:
+            velocity = .6
         def rotate_task():
-            self.rotate(distance, 1)
+            self.rotate(distance, velocity)
 
         self.current_task = threading.Thread(target=rotate_task)
         return self.current_task
@@ -126,7 +132,7 @@ class MobileBase(object):
         start = pose_to_vec(self.odom)
         rate = rospy.Rate(25)
         heading = None
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown() and not self.stopped:
             if heading is None:
                 # Assume we have to go the full distance at this point
                 error = distance
@@ -175,7 +181,7 @@ class MobileBase(object):
         end_coord = (current_coord + angular_distance) % (2 * math.pi)
         rate = rospy.Rate(25)
 
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown() and not self.stopped:
             current_coord = yaw_from_quaternion(
                 self.odom.orientation) % (2 * math.pi)
             error = shortest_angular_distance(current_coord, end_coord)
@@ -195,38 +201,36 @@ class MobileBase(object):
         self.odom = msg.pose.pose
 
 
-def remove_joint_in_trajectory(joint_name, trajectory):
-    modified = deepcopy(trajectory)
-    to_remove = trajectory.joint_names.index(joint_name)
-    modified.joint_names.remove(joint_name)
+def remove_joint_in_point(joint_name, point, joint_names):
+    modified = deepcopy(point)
+    to_remove = joint_names.index(joint_name)
+    joint_names.remove(joint_name)
 
-    for i in range(len(trajectory.points)):
-        prev_positions = trajectory.points[i].positions
-        prev_velocities = trajectory.points[i].velocities
-        prev_efforts = trajectory.points[i].effort
-        modified.points[i].positions = prev_positions[0:to_remove] + prev_positions[
-                                                                     to_remove + 1:]
-        modified.points[i].velocities = prev_velocities[0:to_remove] + prev_velocities[
-                                                                       to_remove + 1:]
-        modified.points[i].effort = prev_efforts[0:to_remove] + prev_efforts[
+    prev_positions = point.positions
+    prev_velocities = point.velocities
+    prev_efforts = point.effort
+    modified.positions = prev_positions[0:to_remove] + prev_positions[
+                                                                 to_remove + 1:]
+    modified.velocities = prev_velocities[0:to_remove] + prev_velocities[
+                                                                   to_remove + 1:]
+    modified.effort = prev_efforts[0:to_remove] + prev_efforts[
                                                                 to_remove + 1:]
-    return modified
+    return modified, joint_names
 
 
-def add_joints_in_trajectory(joint_names, trajectory, positions=None, velocities=None, efforts=None):
-    modified = deepcopy(trajectory)
-    modified.joint_names += joint_names
-    for i in range(len(trajectory.points)):
-        if positions:
-            modified.points[i].positions = tuple(
-                list(modified.points[i].positions) + positions[i])
-        if velocities:
-            modified.points[i].velocities = tuple(
-                list(modified.points[i].velocities) + velocities[i])
-        if efforts:
-            modified.points[i].efforts = tuple(
-                list(modified.points[i].efforts) + efforts[i])
-    return modified
+def add_joints_in_point(original_joint_names, joint_names, point, positions=None, velocities=None, efforts=None):
+    modified = deepcopy(point)
+    modified_joint_names = original_joint_names + joint_names
+    if positions:
+        modified.positions = tuple(
+            list(modified.positions) + positions)
+    if velocities:
+        modified.velocities = tuple(
+            list(modified.velocities) + velocities)
+    if efforts:
+        modified.efforts = tuple(
+            list(modified.efforts) + efforts)
+    return modified, modified_joint_names
 
 
 class FollowJointTrajectoryServer(object):
@@ -236,6 +240,7 @@ class FollowJointTrajectoryServer(object):
 
     def __init__(self, name):
         self._action_name = name
+        self._joint_traj_command_pub = rospy.Publisher("/stretch_controller_raw/command",  trajectory_msgs.msg.JointTrajectory, queue_size=1)
         self._client = actionlib.SimpleActionClient('/stretch_controller_raw/follow_joint_trajectory',
                                                     control_msgs.msg.FollowJointTrajectoryAction)
         connected = self._client.wait_for_server(rospy.Duration(10.0))
@@ -245,6 +250,7 @@ class FollowJointTrajectoryServer(object):
         self.base = MobileBase()
         self.joint_names = None
         self.joint_states = None
+
         self.prev_joint_states = None
         self._joint_states_sub = rospy.Subscriber(
             'joint_states',
@@ -265,52 +271,100 @@ class FollowJointTrajectoryServer(object):
         def wait_task():
             # The lift joint takes a bit to ramp up
             time.sleep(0.1)
-            while not rospy.is_shutdown():
+            while not rospy.is_shutdown() and not self._as.is_preempt_requested():
                 diff = np.linalg.norm(self.joint_states[joint_indices] - self.prev_joint_states[joint_indices])
-                print(diff)
+                # print(diff)
                 if diff < 0.001:
                     break
                 time.sleep(0.1)
 
         return threading.Thread(target=wait_task)
 
+    def process_point(self, joint_names, point):
+        velocity_goal = False
+        if len(point.velocities) > 0:
+            velocity_goal = True
+        modified = deepcopy(point)
+        modified_joint_names = deepcopy(joint_names)
+        control_tasks = []
+        if "gripper_aperture" in joint_names:
+            gripper_joint_index = joint_names.index("gripper_aperture")
+            original_pos = point.positions[gripper_joint_index]
+            velocities = None
+            if velocity_goal:
+                original_vel = point.velocities[gripper_joint_index]
+                velocities = [original_vel / 2., original_vel / 2.]
+            modified, modified_joint_names = remove_joint_in_point("gripper_aperture", modified, modified_joint_names)
+            # HACK: Opening wider than this causes the model to shake
+            original_pos = min(original_pos, 0.3)
+            as_finger_target = original_pos * 2.24
+            modified, modified_joint_names = add_joints_in_point(modified_joint_names, ["joint_gripper_finger_right", "joint_gripper_finger_left"], modified,
+                                                    positions=[as_finger_target, as_finger_target], velocities=velocities)
+
+        if "joint_gripper_finger_left" in joint_names and "joint_gripper_finger_right" not in joint_names:
+            joint_index = joint_names.index("joint_gripper_finger_left")
+            velocities = None
+            if velocity_goal:
+                velocities = [point.velocities[joint_index]]
+            modified, modified_joint_names = add_joints_in_point(modified_joint_names, ["joint_gripper_finger_right"], modified,
+                                                positions=[point.positions[joint_index]], velocities=velocities)
+        if "translate_mobile_base" in joint_names:
+            base_joint_index = joint_names.index("translate_mobile_base")
+            distance = point.positions[base_joint_index]
+
+            velocity = None
+            if velocity_goal:
+                velocity = point.velocities[base_joint_index]
+            base_task = self.base.translate_async(distance, velocity)
+            modified, modified_joint_names = remove_joint_in_point("translate_mobile_base", modified, modified_joint_names)
+            if distance != 0.0:
+                control_tasks.append(base_task)
+        elif "rotate_mobile_base" in joint_names:
+            base_joint_index = joint_names.index("rotate_mobile_base")
+            distance = point.positions[base_joint_index]
+            velocity = None
+            if velocity_goal:
+                velocity = point.velocities[base_joint_index]
+            base_task = self.base.rotate_async(distance, velocity)
+            modified, modified_joint_names = remove_joint_in_point("rotate_mobile_base", modified, modified_joint_names)
+            if distance != 0.0:
+                control_tasks.append(base_task)
+        if "wrist_extension" in joint_names:
+            extension_joint_index = joint_names.index("wrist_extension")
+
+            orig_pos = point.positions[extension_joint_index]
+            velocities = None
+            if velocity_goal:
+                orig_vel = point.velocities[extension_joint_index]
+                velocities = [orig_vel / 4.0 for _ in range(4)]
+            modified, modified_joint_names = remove_joint_in_point("wrist_extension", modified, modified_joint_names)
+            modified, modified_joint_names = add_joints_in_point(modified_joint_names, ["joint_arm_l0", "joint_arm_l1", "joint_arm_l2", "joint_arm_l3"],
+                                                modified, positions=[orig_pos / 4.0 for i in range(4)], velocities=velocities)
+
+        return modified, modified_joint_names, control_tasks
+
+    def stop_joint_motion(self):
+        # Empty trajectory on the topic interface puts joints into a temporary stop hold
+        self._joint_traj_command_pub.publish(trajectory_msgs.msg.JointTrajectory())
+
     def execute_cb(self, goal):
         def relay_feedback(feedback_msg):
             # print(feedback_msg)
             self._as.publish_feedback(feedback_msg)
+        self.base.stopped = False
+        rospy.loginfo(f"{goal.trajectory.joint_names} {goal.trajectory.points[0].positions} {goal.trajectory.points[0].velocities}")
 
-        rospy.loginfo(goal.trajectory.joint_names)
-        rospy.loginfo(goal.trajectory.points[0].positions)
         modified = goal.trajectory
-        base_task = None
-        if "gripper_aperture" in modified.joint_names:
-            original_target = goal.trajectory.points[0].positions[goal.trajectory.joint_names.index("gripper_aperture")]
-            modified = remove_joint_in_trajectory("gripper_aperture", modified)
-            # HACK: Opening wider than this causes the model to shake
-            original_target = min(original_target, 0.3)
-            as_finger_target = original_target * 2.24
-            modified = add_joints_in_trajectory(["joint_gripper_finger_right", "joint_gripper_finger_left"], modified,
-                                                positions=[[as_finger_target, as_finger_target]])
-        if "joint_gripper_finger_left" in modified.joint_names and not "joint_gripper_finger_right" in modified.joint_names:
-            joint_index = modified.joint_names.index("joint_gripper_finger_left")
-            goal_point = modified.points[0]
-            modified = add_joints_in_trajectory(["joint_gripper_finger_right"], modified,
-                                                positions=[[goal_point.positions[joint_index]]])
-        if "translate_mobile_base" in modified.joint_names:
-            base_joint_index = goal.trajectory.joint_names.index("translate_mobile_base")
-            base_task = self.base.translate_async(goal.trajectory.points[0].positions[base_joint_index])
-            modified = remove_joint_in_trajectory("translate_mobile_base", modified)
-        elif "rotate_mobile_base" in modified.joint_names:
-            base_joint_index = modified.joint_names.index("rotate_mobile_base")
-            base_task = self.base.rotate_async(goal.trajectory.points[0].positions[base_joint_index])
-            modified = remove_joint_in_trajectory("rotate_mobile_base", modified)
-        if "wrist_extension" in modified.joint_names:
-            extension_joint_index = modified.joint_names.index("wrist_extension")
-            orig_goal_position = modified.points[0].positions[extension_joint_index]
-            modified = remove_joint_in_trajectory("wrist_extension", modified)
-            modified = add_joints_in_trajectory(["joint_arm_l0", "joint_arm_l1", "joint_arm_l2", "joint_arm_l3"],
-                                                modified, positions=[[orig_goal_position / 4.0 for i in range(4)]])
-
+        new_points = []
+        modified_joint_names = []
+        control_tasks = []
+        for point in modified.points:
+            modified_point, modified_joint_names, point_tasks = self.process_point(goal.trajectory.joint_names, point)
+            new_points.append(modified_point)
+            control_tasks.append(point_tasks)
+        modified.points = new_points
+        modified.joint_names = modified_joint_names
+        print(modified)
         # Check if we still have stuff for the main controller to execute
         main_controller_needed = len(modified.joint_names) > 0
         if main_controller_needed:
@@ -318,11 +372,31 @@ class FollowJointTrajectoryServer(object):
             # The simulator has these finish wayyy too quickly
             wait_stop_task = self.wait_for_joints_stop([self.joint_names.index(joint_name) for joint_name in modified.joint_names])
             wait_stop_task.start()
-        if base_task:
-            base_task.start()
-            base_task.join()
+
+        if control_tasks:
+            for point_tasks in control_tasks:
+                if rospy.is_shutdown() or self._as.is_preempt_requested():
+                    break
+                for task in point_tasks:
+                    task.start()
+                while not rospy.is_shutdown():
+                    rospy.sleep(0.1)
+                    all_done = True
+                    for task in point_tasks:
+                        all_done = all_done and not task.is_alive()
+                    if all_done:
+                        break
+                    if self._as.is_preempt_requested():
+                        self.base.stopped = True
+                        break
         if main_controller_needed:
-            done = self._client.wait_for_result()
+            while not rospy.is_shutdown():
+                rospy.sleep(0.1)
+                if self._as.is_preempt_requested():
+                    self.stop_joint_motion()
+                result = self._client.get_result()
+                if result:
+                    break
             result = self._client.get_result()
             wait_stop_task.join()
         else:
