@@ -6,6 +6,10 @@
 
 Contains a fork of [aws_robomaker_small_house_world](https://github.com/aws-robotics/aws-robomaker-small-house-world), with the ground plane swapped for something with friction parameters compatible with Fetch, and with some textures swapped out.
 
+YCB object models are redistributed under CC BY 4.0.
+
+[WRS objects](https://github.com/hsr-project/tmc_wrs_gazebo) are redistributed under the BSD 3.0 Clear license.
+
 ## Installation
 
 In order to simulate the external head camera, you'll need to clone  [PAL Robotics' Gazebo plugin](https://github.com/pal-robotics/realsense_gazebo_plugin) into the workspace. To make sure you have the dependencies
