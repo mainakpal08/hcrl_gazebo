@@ -1,12 +1,6 @@
 - git:
-    local-name: uw_fetch
-    uri: https://github.com/homeskies/uw_fetch.git
-- git:
     local-name: realsense_gazebo_plugin
     uri: https://github.com/pal-robotics/realsense_gazebo_plugin.git
 - git:
     local-name: knowledge_representation
     uri: https://github.com/utexas-bwi/knowledge_representation.git
-- git:
-    local-name: standard_objects
-    uri: https://github.com/AustinVillaatHome/standard_objects.git

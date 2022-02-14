@@ -62,13 +62,10 @@ spawn_reset(){
 # Look through http://models.gazebosim.org/ for the default objects
 spawn_reset coke_can 0       1.70 -5.10 0.45 1.57
 
-# Make sure you've got the `standard_objects` repo built in the workspace.
-# Use the .rosinstall file.
+spawn_reset "ycb_002_master_chef_can" 0        1.90 -5.10 0.52 1.57
 
-spawn_reset coffee 0        1.90 -5.10 0.52 1.57
+spawn_reset "ycb_009_gelatin_box" 0         1.80 -4.90 0.55 1.57
 
-spawn_reset jello 0         1.80 -4.90 0.55 1.57
+spawn_reset "ycb_010_potted_meat_can" 0 1.60 -5.00 0.50 0.70
 
-spawn_reset "potted meat" 0 1.60 -5.00 0.50 0.70
-
-spawn_reset "cracker" 0 1.40 -5.20 0.51 0.30
+spawn_reset "ycb_003_cracker_box" 0 1.40 -5.20 0.51 0.30

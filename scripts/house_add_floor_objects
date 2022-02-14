@@ -59,31 +59,32 @@ spawn_reset(){
   set_pose "$@"
 }
 
+spawn_reset "beer" 0 4.82 -1.84 0.00 0.30
+
 # Look through http://models.gazebosim.org/ for the default objects
 spawn_reset coke_can 0       1.70 -5.10 0.45 1.57
 
-# Make sure you've got the `standard_objects` repo built in the workspace.
-# Use the .rosinstall file.
+spawn_reset "ycb_007_tuna_fish_can" 0        1.90 7.30 -2.96 0.03
 
-spawn_reset tuna 0        1.90 7.30 -2.96 0.03
+spawn_reset "ycb_009_gelatin_box" 0         2.66 -3.00 0.01 1.57
 
-spawn_reset jello 0         2.66 -3.00 0.01 1.57
+spawn_reset "ycb_010_potted_meat_can" 0 8.83 -1.93 0.01 0.70
 
-spawn_reset "potted meat" 0 8.83 -1.93 0.01 0.70
+spawn_reset "ycb_003_cracker_box" 0 6.55 -5.04 0.01 0.30
 
-spawn_reset "cracker" 0 6.55 -5.04 0.01 0.30
+spawn_reset "ycb_005_tomato_soup_can" 0 6.41 -0.89 0.00 0.30
 
-spawn_reset "beer" 0 4.82 -1.84 0.00 0.30
+spawn_reset "ycb_021_bleach_cleanser" 0 8.58 -1.89 0.04 0.30
 
-spawn_reset "tomato soup" 0 6.41 -0.89 0.00 0.30
+spawn_reset "ycb_008_pudding_box" 0 4.27 0.85 0.01 0.30
 
-spawn_reset "bleach" 0 8.58 -1.89 0.04 0.30
+spawn_reset "ycb_019_pitcher_base" 0 4.78 1.31 0.01 0.30
 
-spawn_reset "pudding" 0 4.27 0.85 0.01 0.30
+spawn_reset "ycb_004_sugar_box" 0 5.14 1.14 0.01 0.30
 
-spawn_reset "pitcher" 0 4.78 1.31 0.01 0.30
+spawn_reset "ycb_006_mustard_bottle" 0 4.14 -1.54 0.01 0.30
 
-spawn_reset "sugar" 0 5.14 1.14 0.01 0.30
+spawn_reset "ycb_025_mug" 0 4.5 -1.83 0.01 0.30
 
 spawn_reset "bowl" 0 -4.73 2.25 0.00 0.30
 
