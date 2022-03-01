@@ -98,11 +98,11 @@ class MobileBase(object):
         twist.angular.z = angular_speed
         self._velocity_publisher.publish(twist)
 
-    def translate_async(self, distance, velocity):
-        if velocity is None:
-            velocity =  .4
+    def translate_async(self, distance, speed):
+        if speed is None:
+            speed = .4
         def translate_task():
-            self.translate(distance, velocity)
+            self.translate(distance, speed)
 
         self.current_task = threading.Thread(target=translate_task)
         return self.current_task
@@ -126,6 +126,7 @@ class MobileBase(object):
                 means forward, negative means backward.
             max_speed: The maximum speed to travel, in meters/second.
         """
+        speed = math.fabs(speed)
         target = distance
         while self.odom is None:
             rospy.sleep(0.1)
@@ -175,7 +176,7 @@ class MobileBase(object):
         """
         while self.odom is None:
             rospy.sleep(0.1)
-
+        speed = math.fabs(speed)
         current_coord = yaw_from_quaternion(self.odom.orientation) % (
                 2 * math.pi)
         end_coord = (current_coord + angular_distance) % (2 * math.pi)
@@ -241,9 +242,9 @@ class FollowJointTrajectoryServer(object):
     def __init__(self, name):
         self._action_name = name
         self._joint_traj_command_pub = rospy.Publisher("/stretch_controller_raw/command",  trajectory_msgs.msg.JointTrajectory, queue_size=1)
-        self._client = actionlib.SimpleActionClient('/stretch_controller_raw/follow_joint_trajectory',
-                                                    control_msgs.msg.FollowJointTrajectoryAction)
-        connected = self._client.wait_for_server(rospy.Duration(10.0))
+        self._raw_client = actionlib.SimpleActionClient('/stretch_controller_raw/follow_joint_trajectory',
+                                                        control_msgs.msg.FollowJointTrajectoryAction)
+        connected = self._raw_client.wait_for_server(rospy.Duration(10.0))
         if not connected:
             rospy.logerr("Couldn't connect to raw follow_joint_trajectory interface")
             exit(1)
@@ -317,8 +318,7 @@ class FollowJointTrajectoryServer(object):
                 velocity = point.velocities[base_joint_index]
             base_task = self.base.translate_async(distance, velocity)
             modified, modified_joint_names = remove_joint_in_point("translate_mobile_base", modified, modified_joint_names)
-            if distance != 0.0:
-                control_tasks.append(base_task)
+            control_tasks.append(base_task)
         elif "rotate_mobile_base" in joint_names:
             base_joint_index = joint_names.index("rotate_mobile_base")
             distance = point.positions[base_joint_index]
@@ -327,8 +327,7 @@ class FollowJointTrajectoryServer(object):
                 velocity = point.velocities[base_joint_index]
             base_task = self.base.rotate_async(distance, velocity)
             modified, modified_joint_names = remove_joint_in_point("rotate_mobile_base", modified, modified_joint_names)
-            if distance != 0.0:
-                control_tasks.append(base_task)
+            control_tasks.append(base_task)
         if "wrist_extension" in joint_names:
             extension_joint_index = joint_names.index("wrist_extension")
 
@@ -368,7 +367,7 @@ class FollowJointTrajectoryServer(object):
         # Check if we still have stuff for the main controller to execute
         main_controller_needed = len(modified.joint_names) > 0
         if main_controller_needed:
-            self._client.send_goal(FollowJointTrajectoryGoal(trajectory=modified), feedback_cb=relay_feedback)
+            self._raw_client.send_goal(FollowJointTrajectoryGoal(trajectory=modified), feedback_cb=relay_feedback)
             # The simulator has these finish wayyy too quickly
             wait_stop_task = self.wait_for_joints_stop([self.joint_names.index(joint_name) for joint_name in modified.joint_names])
             wait_stop_task.start()
@@ -394,10 +393,10 @@ class FollowJointTrajectoryServer(object):
                 rospy.sleep(0.1)
                 if self._as.is_preempt_requested():
                     self.stop_joint_motion()
-                result = self._client.get_result()
+                result = self._raw_client.get_result()
                 if result:
                     break
-            result = self._client.get_result()
+            result = self._raw_client.get_result()
             wait_stop_task.join()
         else:
             result = FollowJointTrajectoryResult()
