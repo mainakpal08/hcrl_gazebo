@@ -2,6 +2,8 @@
   <arg name="map_file" default="$(find hcrl_gazebo)/maps/house/map.yaml"/>
   <arg name="robot" default="forky"/>
   <arg name="use_navigation" default="true" />
+  <arg name="rviz" default="true"/>
+  <arg name="gui" default="true"/>
   <include file="$(find hcrl_gazebo)/launch/empty_simulation.launch">
     <arg name="map_file" value="$(arg map_file)"/>
     <arg name="world" value="$(find hcrl_gazebo)/worlds/house.world" />
@@ -9,6 +11,8 @@
     <arg name="initial_pose_x" value="3.5"/>
     <arg name="initial_pose_y" value="1.0"/>
     <arg name="use_navigation" value="$(arg use_navigation)" />
+    <arg name="rviz" default="$(arg rviz)"/>
+    <arg name="gui" default="$(arg gui)"/>
   </include>
-    <node name="load_map_annotations" pkg="knowledge_representation" type="populate_with_map" args="$(find hcrl_gazebo)/maps/house/map.yaml"/>
+  <node name="load_map_annotations" pkg="knowledge_representation" type="populate_with_map" args="$(find hcrl_gazebo)/maps/house/map.yaml"/>
 </launch>

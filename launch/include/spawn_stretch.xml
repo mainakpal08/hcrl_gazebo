@@ -1,25 +1,30 @@
 <launch>
+  <arg name="robot" default="forky"/>
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="z" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="model" default=""/>
+  <arg name="gpu_lidar" default="false"/>
+  <arg name="visualize_lidar" default="false"/>
+  <arg name="realsense" default="true"/>
 
-    <arg name="robot" default="forky" />
-    <arg name="x" default="0.0" />
-    <arg name="y" default="0.0" />
-    <arg name="z" default="0.0" />
-    <arg name="yaw" default="0.0" />
-    <arg name="gui" default="true"/>
-    <arg name="headless" default="false"/>
-    <arg name="debug" default="false"/>
-    <arg name="model" default=""/>
-    <arg name="gpu_lidar" default="false"/>
-    <arg name="visualize_lidar" default="false"/>
 
+  <param name="robot_description"
+         command="$(find xacro)/xacro $(find stretch_gazebo)/urdf/stretch_gazebo.urdf.xacro gpu_lidar:=$(arg gpu_lidar) visualize_lidar:=$(arg visualize_lidar)"
+         if="$(eval robot == 'stretch')"/>
 
-  <param name="robot_description" command="$(find xacro)/xacro $(find stretch_gazebo)/urdf/stretch_gazebo.urdf.xacro gpu_lidar:=$(arg gpu_lidar) visualize_lidar:=$(arg visualize_lidar)" if="$(eval robot == 'stretch')"/>
-
-    <param name="robot_description" command="$(find xacro)/xacro $(find hcrl_gazebo)/robots/forky.gazebo.xacro gpu_lidar:=$(arg gpu_lidar) visualize_lidar:=$(arg visualize_lidar)" if="$(eval robot == 'forky')"/>
+  <param name="robot_description"
+         command="$(find xacro)/xacro $(find hcrl_gazebo)/robots/forky.gazebo.xacro gpu_lidar:=$(arg gpu_lidar) visualize_lidar:=$(arg visualize_lidar) realsense:=$(arg realsense)"
+         if="$(eval robot == 'forky')"/>
 
   <!-- push robot_description to factory and spawn robot in gazebo -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
-        args=" -urdf -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw) -model robot -param robot_description -J joint_lift 0.2 -J joint_wrist_yaw 3.14" respawn="false" output="screen" />
+        args=" -urdf -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw) -model robot -param robot_description -J joint_lift 0.2 -J joint_wrist_yaw 3.14"
+        respawn="false" output="screen"/>
 
   <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
     <param name="publish_frequency" type="double" value="30.0" />
