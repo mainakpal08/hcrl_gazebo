@@ -26,42 +26,43 @@
         args=" -urdf -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw) -model robot -param robot_description -J joint_lift 0.2 -J joint_wrist_yaw 3.14"
         respawn="false" output="screen"/>
 
-  <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
-    <param name="publish_frequency" type="double" value="30.0" />
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="30.0"/>
   </node>
 
-    <node
-            name="joint_state_publisher"
-            pkg="joint_state_publisher"
-            type="joint_state_publisher" >
-        <param name="rate" value="15.0"/>
-        <rosparam param="source_list">
-            [/stretch/joint_states]
-        </rosparam>
-    </node>
+  <node
+          name="joint_state_publisher"
+          pkg="joint_state_publisher"
+          type="joint_state_publisher">
+    <param name="rate" value="15.0"/>
+    <rosparam param="source_list">
+      [/stretch/joint_states]
+    </rosparam>
+  </node>
 
 
   <rosparam command="load"
-              file="$(find hcrl_gazebo)/config/stretch/gazebo_ros_control_params.yaml"/>
+            file="$(find hcrl_gazebo)/config/stretch/gazebo_ros_control_params.yaml"/>
 
   <rosparam command="load"
             file="$(find stretch_gazebo)/config/drive_config.yaml"
-            ns="stretch_diff_drive_controller" />
+            ns="stretch_diff_drive_controller"/>
 
   <rosparam command="load"
-              file="$(find hcrl_gazebo)/config/stretch/body.yaml" />
+            file="$(find hcrl_gazebo)/config/stretch/body.yaml"/>
 
   <node name="stretch_controller_spawner" pkg="controller_manager" type="spawner"
-          args="stretch_diff_drive_controller stretch_controller_raw"/>
+        args="stretch_diff_drive_controller stretch_controller_raw"/>
 
-  <node name="unpause_after_wait" pkg="hcrl_gazebo" type="unpause_after_wait" output="screen" />
-  <node name="follow_joint_trajectory_server" pkg="hcrl_gazebo" type="follow_joint_trajectory_server" output="screen" if="$(eval robot == 'forky')"/>
+  <node name="unpause_after_wait" pkg="hcrl_gazebo" type="unpause_after_wait" output="screen"/>
+  <node name="follow_joint_trajectory_server" pkg="hcrl_gazebo" type="follow_joint_trajectory_server" output="screen"
+        if="$(eval robot == 'forky')"/>
 
   <node name="fake_realsense_modes" pkg="hcrl_gazebo" type="fake_realsense_modes">
-    <param name="initial_mode" value="Default" />
+    <param name="initial_mode" value="Default"/>
   </node>
 
-    <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
+  <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
   <!--include file="$(find stretch_moveit_config)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="info" value="true"/>
