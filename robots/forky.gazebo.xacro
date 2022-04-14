@@ -394,7 +394,7 @@
           <infrared2OpticalframeName>camera_right_ir_optical_frame</infrared2OpticalframeName>
           <rangeMinDepth>0.1</rangeMinDepth>
           <rangeMaxDepth>10</rangeMaxDepth>
-          <pointCloud>1</pointCloud>
+          <pointCloud>0</pointCloud>
           <pointCloudTopicName>depth/color/points</pointCloudTopicName>
           <pointCloudCutoff>0.15</pointCloudCutoff>
           <pointCloudCutoffMax>10</pointCloudCutoffMax>

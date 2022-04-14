@@ -351,6 +351,8 @@ class FollowJointTrajectoryServer(object):
             # print(feedback_msg)
             self._as.publish_feedback(feedback_msg)
         self.base.stopped = False
+        # Manually reset this bit
+        # self._as.preempt_request = False
         rospy.loginfo(f"{goal.trajectory.joint_names} {goal.trajectory.points[0].positions} {goal.trajectory.points[0].velocities}")
 
         modified = goal.trajectory
