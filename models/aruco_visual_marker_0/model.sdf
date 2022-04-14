@@ -45,7 +45,7 @@
       <visual name='visual'>
         <geometry>
           <box>
-            <size>0.1778 0.1778 1e-5</size>
+            <size>0.2 0.2 1e-5</size>
           </box>
         </geometry>
         <material>
@@ -77,17 +77,9 @@
       </collision>
     </link>
 
-    <joint name='marker_JOINT_marker_pad' type='revolute'>
+    <joint name='marker_JOINT_marker_pad' type='fixed'>
       <parent>marker</parent>
       <child>marker_pad</child>
-      <pose frame=''>0 0 0 0 -0 0</pose>
-      <axis>
-        <xyz>0 0 1</xyz>
-        <limit>
-          <upper>0</upper>
-          <lower>0</lower>
-        </limit>
-      </axis>
     </joint>
 
     <static>1</static>
