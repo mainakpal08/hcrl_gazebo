@@ -1,4 +1,4 @@
-stretch_controller_raw:
+follow_joint_trajectory_raw:
   type: "effort_controllers/JointTrajectoryController"
   joints:
     - joint_head_pan
@@ -9,6 +9,8 @@ stretch_controller_raw:
     - joint_arm_l1
     - joint_arm_l0
     - joint_wrist_yaw
+    - joint_wrist_pitch
+    - joint_wrist_roll
     - joint_gripper_finger_right
     - joint_gripper_finger_left
   allow_partial_joints_goal: true
@@ -32,6 +34,8 @@ stretch_controller_raw:
     joint_arm_l2: {p: 500, d: 0, i: 0, i_clamp: 1}
     joint_arm_l1: {p: 500, d: 0, i: 0, i_clamp: 1}
     joint_arm_l0: {p: 500, d: 0, i: 0, i_clamp: 1}
-    joint_wrist_yaw: {p: 2, d: 1, i: 0, i_clamp: 1}
-    joint_gripper_finger_right: {p: 2, d: 1, i: 0, i_clamp: 1}
-    joint_gripper_finger_left: {p: 2, d: 1, i: 0, i_clamp: 1}
+    joint_wrist_yaw: {p: 20, d: 1, i: 0, i_clamp: 1}
+    joint_wrist_pitch: {p: 20, d: 1, i: 0, i_clamp: 1}
+    joint_wrist_roll: {p: 20, d: 1, i: 0, i_clamp: 1}
+    joint_gripper_finger_right: {p: 20, d: 1, i: 0, i_clamp: 1}
+    joint_gripper_finger_left: {p: 20, d: 1, i: 0, i_clamp: 1}

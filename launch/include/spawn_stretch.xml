@@ -11,6 +11,8 @@
   <arg name="gpu_lidar" default="false"/>
   <arg name="visualize_lidar" default="false"/>
   <arg name="realsense" default="true"/>
+  <arg name="tool" default="gripper"/>
+  <arg name="fisheyes" default="true"/>
 
 
   <param name="robot_description"
@@ -18,12 +20,12 @@
          if="$(eval robot == 'stretch')"/>
 
   <param name="robot_description"
-         command="$(find xacro)/xacro $(find hcrl_gazebo)/robots/forky.gazebo.xacro gpu_lidar:=$(arg gpu_lidar) visualize_lidar:=$(arg visualize_lidar) realsense:=$(arg realsense)"
+         command="$(find xacro)/xacro $(find hcrl_gazebo)/robots/forky.gazebo.xacro gpu_lidar:=$(arg gpu_lidar) visualize_lidar:=$(arg visualize_lidar) realsense:=$(arg realsense) tool:=$(arg tool) fisheyes:=$(arg fisheyes)"
          if="$(eval robot == 'forky')"/>
 
   <!-- push robot_description to factory and spawn robot in gazebo -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
-        args=" -urdf -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw) -model robot -param robot_description -J joint_lift 0.2 -J joint_wrist_yaw 3.14"
+        args=" -urdf -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw) -model robot -param robot_description -J joint_lift 0.5 -J joint_wrist_yaw 0"
         respawn="false" output="screen"/>
 
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
@@ -42,17 +44,22 @@
 
 
   <rosparam command="load"
-            file="$(find hcrl_gazebo)/config/stretch/gazebo_ros_control_params.yaml"/>
+            file="$(find hcrl_gazebo)/config/stretch/ros_control_params.yaml"/>
 
   <rosparam command="load"
             file="$(find stretch_gazebo)/config/drive_config.yaml"
             ns="stretch_diff_drive_controller"/>
-
-  <rosparam command="load"
-            file="$(find hcrl_gazebo)/config/stretch/body.yaml"/>
+  <group if="$(eval tool == 'dexwrist')">
+    <rosparam command="load"
+              file="$(find hcrl_gazebo)/config/stretch/dexwrist_follow_joint_trajectory_raw.yaml"/>
+  </group>
+  <group if="$(eval tool == 'gripper')">
+    <rosparam command="load"
+              file="$(find hcrl_gazebo)/config/stretch/follow_joint_trajectory_raw.yaml"/>
+  </group>
 
   <node name="stretch_controller_spawner" pkg="controller_manager" type="spawner"
-        args="stretch_diff_drive_controller stretch_controller_raw"/>
+        args="stretch_diff_drive_controller follow_joint_trajectory_raw"/>
 
   <node name="unpause_after_wait" pkg="hcrl_gazebo" type="unpause_after_wait" output="screen"/>
   <node name="follow_joint_trajectory_server" pkg="hcrl_gazebo" type="follow_joint_trajectory_server" output="screen"
@@ -63,7 +70,7 @@
   </node>
 
   <group ns="camera" if="$(arg realsense)">
-    <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
+    <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager"/>
 
     <node pkg="nodelet" type="nodelet" name="nodelet1"
           args="load depth_image_proc/register nodelet_manager">

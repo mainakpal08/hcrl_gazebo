@@ -7,6 +7,8 @@ gazebo_ros_control/pid_gains:
   joint_arm_l2: {p: 200, i: 0.0, d: 30}
   joint_arm_l3: {p: 200, i: 0.0, d: 30}
   joint_wrist_yaw: {p: 20, i: 5.0, d: 0.4}
+  joint_wrist_pitch: {p: 20, i: 5.0, d: 0.4}
+  joint_wrist_roll: {p: 20, i: 5.0, d: 0.4}
   joint_head_pan: {p: 2, i: 0.0, d: 0.4}
   joint_head_tilt: {p: 2, i: 0.0, d: 0.4}
   joint_gripper_finger_left: {p: 0.5, i: 0.0, d: 0.4}

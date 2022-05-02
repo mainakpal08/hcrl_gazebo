@@ -2,6 +2,7 @@
   <arg name="initial_pose_x" default="0.0"/>
   <arg name="initial_pose_y" default="0.0"/>
   <env name="GAZEBO_MODEL_PATH" value="$(find hcrl_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)" />
+  <env name="GAZEBO_RESOURCE_PATH" value="$(find hcrl_gazebo)/models/hello_robot_materials:$(optenv GAZEBO_RESOURCE_PATH)" />
 
   <arg name="rviz" default="true"/>
   <arg name="gui" default="true"/>

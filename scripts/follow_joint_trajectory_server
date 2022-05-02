@@ -241,8 +241,8 @@ class FollowJointTrajectoryServer(object):
 
     def __init__(self, name):
         self._action_name = name
-        self._joint_traj_command_pub = rospy.Publisher("/stretch_controller_raw/command",  trajectory_msgs.msg.JointTrajectory, queue_size=1)
-        self._raw_client = actionlib.SimpleActionClient('/stretch_controller_raw/follow_joint_trajectory',
+        self._joint_traj_command_pub = rospy.Publisher("/follow_joint_trajectory_raw/command",  trajectory_msgs.msg.JointTrajectory, queue_size=1)
+        self._raw_client = actionlib.SimpleActionClient('/follow_joint_trajectory_raw/follow_joint_trajectory',
                                                         control_msgs.msg.FollowJointTrajectoryAction)
         connected = self._raw_client.wait_for_server(rospy.Duration(10.0))
         if not connected:

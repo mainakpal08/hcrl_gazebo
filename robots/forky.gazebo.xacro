@@ -1,94 +1,202 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="stretch_description">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="forky">
   <xacro:arg name="gpu_lidar" default="false" />
   <xacro:arg name="visualize_lidar" default="false" />
   <xacro:arg name="realsense" default="true" />
+  <xacro:arg name="tool" default="gripper" />
+  <xacro:arg name="fisheyes" default="true" />
 
   <xacro:include filename="$(find stretch_description)/urdf/stretch_main.xacro" />
   <xacro:include filename="$(find stretch_description)/urdf/stretch_aruco.xacro" />
   <xacro:include filename="$(find stretch_description)/urdf/stretch_d435i.xacro" />
   <xacro:include filename="$(find stretch_description)/urdf/stretch_laser_range_finder.xacro" />
   <xacro:include filename="$(find stretch_description)/urdf/stretch_respeaker.xacro" />
-  <xacro:include filename="$(find stretch_description)/urdf/stretch_gripper.xacro" />
+  <xacro:if value="${'$(arg tool)' == 'gripper' }">
+    <xacro:include filename="$(find hcrl_gazebo)/urdf/stretch_gripper.gazebo.xacro" />
+    <xacro:stretch-gripper-gazebo/>
+  </xacro:if>
+  <xacro:if value="${'$(arg tool)' == 'dex_wrist' }">
+    <xacro:include filename="$(find hcrl_gazebo)/urdf/stretch_dex_wrist.gazebo.xacro" />
+    <xacro:stretch-dex-wrist-gazebo/>
 
-  <xacro:property name="camera_link" value="0.015" /> <!-- Size of square 'camera' box -->
-
-  <!-- Navigation Camera -->
-  <joint name="navigation_camera_joint" type="fixed">
-    <axis xyz="0 1 0" />
-    <origin xyz="0 .125 -0.01" rpy="0 1.57 0"/>
-    <parent link="link_head"/>
-    <child link="navigation_camera_link"/>
-  </joint>
+  </xacro:if>
 
 
-  <link name="navigation_camera_link">
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-    <sphere radius="${camera_link}"/>
-      </geometry>
-    </collision>
+  <xacro:if value="${'$(arg fisheyes)' == 'true' }">
+      <xacro:property name="camera_link" value="0.015" /> <!-- Size of square 'camera' box -->
 
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-    <sphere radius="${camera_link}"/>
-      </geometry>
-      <material name="">
-        <color rgba="0.1 0.1 0.1 1" />
-      </material>
-    </visual>
-
-    <inertial>
-      <mass value="0" />
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
-    </inertial>
-  </link>
-
-  <gazebo reference="navigation_camera_link">
-      <material>Gazebo/Black</material>
-  </gazebo>
-
-  <!-- Gripper Camera -->
-  <joint name="gripper_camera_joint" type="fixed">
-    <axis xyz="0 1 0" />
-    <origin xyz="-.125 0 -.05 " rpy="0 .7 3.14"/>
-    <parent link="link_gripper"/>
-    <child link="gripper_camera_link"/>
-  </joint>
+    <!-- Navigation Camera -->
+    <joint name="navigation_camera_joint" type="fixed">
+      <axis xyz="0 1 0" />
+      <origin xyz="0 .125 -0.01" rpy="0 1.57 0"/>
+      <parent link="link_head"/>
+      <child link="navigation_camera_link"/>
+    </joint>
 
 
-  <link name="gripper_camera_link">
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-    <sphere radius="${camera_link}"/>
-      </geometry>
-    </collision>
+    <link name="navigation_camera_link">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+      <sphere radius="${camera_link}"/>
+        </geometry>
+      </collision>
 
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-    <sphere radius="${camera_link}"/>
-      </geometry>
-      <material name="">
-              <color rgba="0.1 0.1 0.1 1" />
-            </material>
-    </visual>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+      <sphere radius="${camera_link}"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.1 0.1 0.1 1" />
+        </material>
+      </visual>
 
-    <inertial>
-      <mass value="0" />
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
-    </inertial>
-  </link>
+      <inertial>
+        <mass value="0" />
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
+      </inertial>
+    </link>
 
-    <gazebo reference="gripper_camera_link">
-        <material>Gazebo/Black</material>
+    <gazebo reference="navigation_camera_link">
+        <material>HelloRobot/Black</material>
     </gazebo>
 
+    <!-- Gripper Camera -->
+    <xacro:if value="${'$(arg tool)' == 'gripper' }">
+      <joint name="gripper_camera_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz="-.125 0 -.05 " rpy="0 .7 3.14"/>
+        <parent link="link_gripper"/>
+        <child link="gripper_camera_link"/>
+      </joint>
+    </xacro:if>
+    <xacro:if value="${'$(arg tool)' == 'dex_wrist' }">
+      <joint name="gripper_camera_joint" type="fixed">
+        <axis xyz="0 1 0" />
+        <origin xyz="-.125 0 -.05 " rpy="0 .7 3.14"/>
+        <parent link="link_wrist_yaw"/>
+        <child link="gripper_camera_link"/>
+      </joint>
+    </xacro:if>
+
+
+    <link name="gripper_camera_link">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+      <sphere radius="${camera_link}"/>
+        </geometry>
+      </collision>
+
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+      <sphere radius="${camera_link}"/>
+        </geometry>
+        <material name="">
+                <color rgba="0.1 0.1 0.1 1" />
+              </material>
+      </visual>
+
+      <inertial>
+        <mass value="0" />
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
+      </inertial>
+    </link>
+
+    <gazebo reference="gripper_camera_link">
+        <material>HelloRobot/Black</material>
+    </gazebo>
+
+    <!-- Navigation camera -->
+    <gazebo reference="navigation_camera_link">
+      <sensor name="navigation_camera" type="wideanglecamera">
+        <camera>
+          <horizontal_fov>2.55</horizontal_fov>
+          <image>
+            <width>1024</width>
+            <height>768</height>
+          </image>
+          <clip>
+            <near>0.01</near>
+            <far>100</far>
+          </clip>
+          <lens>
+            <type>custom</type>
+            <custom_function>
+              <c1>1.05</c1>
+              <c2>4</c2>
+              <f>1.0</f>
+              <fun>tan</fun>
+            </custom_function>
+            <cutoff_angle>1.3</cutoff_angle>
+          </lens>
+          <always_on>1</always_on>
+          <update_rate>6</update_rate>
+        </camera>
+        <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+          <alwaysOn>false</alwaysOn>
+          <updateRate>0.0</updateRate>
+          <cameraName>navigation_camera</cameraName>
+          <imageTopicName>image_raw</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <frameName>camera_link</frameName>
+          <hackBaseline>0.07</hackBaseline>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+    <!-- Gripper camera -->
+    <gazebo reference="gripper_camera_link">
+      <sensor name="gripper_camera" type="wideanglecamera">
+        <camera>
+          <horizontal_fov>2.55</horizontal_fov>
+          <image>
+            <width>1024</width>
+            <height>768</height>
+          </image>
+          <clip>
+            <near>0.01</near>
+            <far>100</far>
+          </clip>
+          <lens>
+            <type>custom</type>
+            <custom_function>
+              <c1>1.05</c1>
+              <c2>4</c2>
+              <f>1.0</f>
+              <fun>tan</fun>
+            </custom_function>
+            <cutoff_angle>1.3</cutoff_angle>
+          </lens>
+          <always_on>1</always_on>
+          <update_rate>6</update_rate>
+        </camera>
+        <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+          <alwaysOn>false</alwaysOn>
+          <updateRate>0.0</updateRate>
+          <cameraName>gripper_camera</cameraName>
+          <imageTopicName>image_raw</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <frameName>camera_link</frameName>
+          <hackBaseline>0.07</hackBaseline>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:if>
 
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libhcrl_gazebo_ros_control_plugin.so">
@@ -100,7 +208,7 @@
 
   <!-- Base and Drive -->
   <gazebo reference="base_link">
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/LightGray</material>
   </gazebo>
 
   <gazebo reference="link_right_wheel">
@@ -108,7 +216,7 @@
       <mu2 value="200.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Blue</material>
+      <material>HelloRobot/Black</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 
@@ -117,14 +225,14 @@
       <mu2 value="200.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Blue</material>
+      <material>HelloRobot/Black</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 
   <gazebo reference="caster_link">
     <turnGravityOff>false</turnGravityOff>
     <minDepth>0.001</minDepth>
-    <material>Gazebo/Blue</material>
+    <material>HelloRobot/Black</material>
     <mu1>0.0</mu1>
     <mu2>0.0</mu2>
   </gazebo>
@@ -150,89 +258,6 @@
 		</transmission>
 
   <!-- Sensors -->
-
-  <!-- Navigation camera -->
-  <gazebo reference="navigation_camera_link">
-    <sensor type="camera" name="navigation_camera">
-      <update_rate>6.0</update_rate>
-      <camera name="head">
-        <horizontal_fov>1.8</horizontal_fov>
-        <image>
-          <width>1024</width>
-          <height>768</height>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.02</near>
-          <far>100</far>
-        </clip>
-        <noise>
-          <type>gaussian</type>
-          <!-- Noise is sampled independently per pixel on each frame.
-               That pixel's noise value is added to each of its color
-               channels, which at that point lie in the range [0,1]. -->
-          <mean>0.0</mean>
-          <stddev>0.007</stddev>
-        </noise>
-      </camera>
-      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
-        <alwaysOn>false</alwaysOn>
-        <updateRate>0.0</updateRate>
-        <cameraName>navigation_camera</cameraName>
-        <imageTopicName>image_raw</imageTopicName>
-        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-        <frameName>camera_link</frameName>
-        <hackBaseline>0.07</hackBaseline>
-        <distortionK1>0.0</distortionK1>
-        <distortionK2>0.0</distortionK2>
-        <distortionK3>0.0</distortionK3>
-        <distortionT1>0.0</distortionT1>
-        <distortionT2>0.0</distortionT2>
-      </plugin>
-    </sensor>
-  </gazebo>
-
-  <!-- Gripper camera -->
-  <gazebo reference="gripper_camera_link">
-    <sensor type="camera" name="gripper_camera">
-      <update_rate>6.0</update_rate>
-      <camera name="head">
-        <horizontal_fov>1.8</horizontal_fov>
-        <image>
-          <width>1024</width>
-          <height>768</height>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.02</near>
-          <far>100</far>
-        </clip>
-        <noise>
-          <type>gaussian</type>
-          <!-- Noise is sampled independently per pixel on each frame.
-               That pixel's noise value is added to each of its color
-               channels, which at that point lie in the range [0,1]. -->
-          <mean>0.0</mean>
-          <stddev>0.007</stddev>
-        </noise>
-      </camera>
-      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
-        <alwaysOn>false</alwaysOn>
-        <updateRate>0.0</updateRate>
-        <cameraName>gripper_camera</cameraName>
-        <imageTopicName>image_raw</imageTopicName>
-        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-        <frameName>camera_link</frameName>
-        <hackBaseline>0.07</hackBaseline>
-        <distortionK1>0.0</distortionK1>
-        <distortionK2>0.0</distortionK2>
-        <distortionK3>0.0</distortionK3>
-        <distortionT1>0.0</distortionT1>
-        <distortionT2>0.0</distortionT2>
-      </plugin>
-    </sensor>
-  </gazebo>
-
   <xacro:if value="${'$(arg realsense)' == 'false' }">
     <gazebo reference="camera_depth_frame">
       <sensor type="camera" name="depth_camera">
@@ -444,13 +469,13 @@
 
   <!-- Respeaker -->
   <gazebo reference="respeaker_base">
-      <material>Gazebo/Green</material>
+      <material>HelloRobot/Black</material>
   </gazebo>
 
   <!-- Non GPU LIDAR -->
   <xacro:unless value="$(arg gpu_lidar)">
     <gazebo reference="laser">
-      <material>Gazebo/Black</material>
+      <material>HelloRobot/Black</material>
       <sensor type="ray" name="laser_sensor">
         <pose>0 0 0 0 0 0</pose>
         <visualize>$(arg visualize_lidar)</visualize>
@@ -486,7 +511,7 @@
   <!-- GPU LIDAR -->
   <xacro:if value="$(arg gpu_lidar)">
     <gazebo reference="laser">
-      <material>Gazebo/Black</material>
+      <material>HelloRobot/Black</material>
       <sensor type="gpu_ray" name="laser_sensor">
         <pose>0 0 0 0 0 0</pose>
         <visualize>$(arg visualize_lidar)</visualize>
@@ -539,25 +564,6 @@
     </sensor>
   </gazebo>
 
-  <!-- Wrist IMU -->
-  <gazebo reference="link_wrist_yaw">
-    <gravity>true</gravity>
-    <sensor name="wrist_imu" type="imu">
-      <always_on>true</always_on>
-      <visualize>false</visualize>
-      <plugin name="imu_plugin" filename="libgazebo_ros_imu_sensor.so">
-        <topicName>wrist_imu/data</topicName>
-        <bodyName>link_wrist_yaw</bodyName>
-        <updateRateHZ>25.0</updateRateHZ>
-        <gaussianNoise>0.001</gaussianNoise>
-        <xyzOffset>0 0 0</xyzOffset>
-        <rpyOffset>0 0 0</rpyOffset>
-        <frameName>link_wrist_yaw</frameName>
-        <initialOrientationAsReference>false</initialOrientationAsReference>
-      </plugin>
-      <pose>0 0 0 0 0 0</pose>
-    </sensor>
-  </gazebo>
 
   <!-- Lift -->
   <gazebo reference="link_lift">
@@ -565,12 +571,12 @@
       <mu2 value="10000.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Black</material>
+      <material>HelloRobot/DarkGray</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 
   <gazebo reference="link_mast">
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/Black</material>
   </gazebo>
 
   <transmission name="trans_lift">
@@ -589,7 +595,7 @@
       <mu2 value="200.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/Black</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 
@@ -598,7 +604,7 @@
       <mu2 value="200.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/Black</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 
@@ -607,7 +613,7 @@
       <mu2 value="200.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/Black</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 
@@ -616,7 +622,7 @@
       <mu2 value="200.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/Black</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 
@@ -625,7 +631,7 @@
       <mu2 value="200.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/Black</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 
@@ -666,31 +672,30 @@
     </joint>
   </transmission>
 
-  <!-- Wrist -->
-  <gazebo reference="link_wrist_yaw">
-      <mu1 value="100.0"/>
-      <mu2 value="200.0"/>
-      <kp value="10000000.0" />
-      <kd value="100.0" />
-      <material>Gazebo/Black</material>
-      <minDepth>0.001</minDepth>
-  </gazebo>
+  <gazebo>
+    <plugin filename="libroboticsgroup_upatras_gazebo_mimic_joint_plugin.so" name="arm_mimic1">
+      <joint>joint_arm_l3</joint>
+      <mimicJoint>joint_arm_l0</mimicJoint>
+      <multiplier>1.0</multiplier>
+    </plugin>
+    <plugin filename="libroboticsgroup_upatras_gazebo_mimic_joint_plugin.so" name="arm_mimic2">
+      <joint>joint_arm_l3</joint>
+      <mimicJoint>joint_arm_l1</mimicJoint>
+      <multiplier>1.0</multiplier>
+    </plugin>
+    <plugin filename="libroboticsgroup_upatras_gazebo_mimic_joint_plugin.so" name="arm_mimic3">
+      <joint>joint_arm_l3</joint>
+      <mimicJoint>joint_arm_l2</mimicJoint>
+      <multiplier>1.0</multiplier>
+    </plugin>
 
-  <transmission name="trans_wrist_yaw">
-    <type>transmission_interface/SimpleTransmission</type>
-    <actuator name="motor_wrist_yaw" >
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-    <joint name="joint_wrist_yaw">
-      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-    </joint>
-  </transmission>
+  </gazebo>
 
   <!-- Head -->
   <gazebo reference="link_head">
       <mu1 value="100.0"/>
       <mu2 value="200.0"/>
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/DarkGray</material>
   </gazebo>
 
   <gazebo reference="link_head_tilt">
@@ -698,7 +703,7 @@
       <mu2 value="200.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/LightGray</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 
@@ -731,81 +736,6 @@
     </joint>
   </transmission>
 
-  <!-- Gripper -->
-  <gazebo reference="link_gripper_finger_left">
-      <mu1 value="100.0"/>
-      <mu2 value="200.0"/>
-      <kp value="10000000.0" />
-      <kd value="100.0" />
-      <material>Gazebo/Gray</material>
-      <minDepth>0.001</minDepth>
-  </gazebo>
-
-  <gazebo reference="link_gripper_finger_right">
-      <mu1 value="100.0"/>
-      <mu2 value="200.0"/>
-      <kp value="10000000.0" />
-      <kd value="100.0" />
-      <material>Gazebo/Gray</material>
-      <minDepth>0.001</minDepth>
-  </gazebo>
-
-  <gazebo reference="link_grasp_center">
-      <mu1 value="100.0"/>
-      <mu2 value="200.0"/>
-      <kp value="10000000.0" />
-      <kd value="100.0" />
-      <material>Gazebo/Gray</material>
-      <minDepth>0.001</minDepth>
-  </gazebo>
-
-  <gazebo reference="link_gripper_fingertip_left">
-      <mu1 value="100.0"/>
-      <mu2 value="200.0"/>
-      <kp value="10000000.0" />
-      <kd value="100.0" />
-      <material>Gazebo/Black</material>
-      <minDepth>0.001</minDepth>
-  </gazebo>
-
-  <gazebo reference="link_gripper_fingertip_right">
-      <mu1 value="100.0"/>
-      <mu2 value="200.0"/>
-      <kp value="10000000.0" />
-      <kd value="100.0" />
-      <material>Gazebo/Black</material>
-      <minDepth>0.001</minDepth>
-  </gazebo>
-
-  <gazebo reference="link_gripper">
-      <mu1 value="100.0"/>
-      <mu2 value="200.0"/>
-      <kp value="10000000.0" />
-      <kd value="100.0" />
-      <material>Gazebo/Gray</material>
-      <minDepth>0.001</minDepth>
-  </gazebo>
-
-  <transmission name="trans_gripper_finger_left">
-    <type>transmission_interface/SimpleTransmission</type>
-    <actuator name="motor_gripper_finger_left">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-    <joint name="joint_gripper_finger_left">
-      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-    </joint>
-  </transmission>
-  <transmission name="trans_gripper_finger_right">
-    <type>transmission_interface/SimpleTransmission</type>
-    <actuator name="motor_gripper_finger_right">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-    <joint name="joint_gripper_finger_right">
-      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-    </joint>
-  </transmission>
-
-<!-- Ground Truth Odom plugin -->
 
   <!-- Ground Truth Odom plugin -->
   <gazebo>

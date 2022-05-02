@@ -1,0 +1,44 @@
+material HelloRobot/DarkGray
+{
+  technique
+  {
+    pass ambient
+    {
+      lighting on
+
+      ambient .50 .53 .57 1
+      diffuse .50 .53 .57 1
+      specular 0.2 0.2 0.2 1
+    }
+  }
+}
+
+material HelloRobot/LightGray
+{
+  technique
+  {
+    pass ambient
+    {
+      lighting on
+
+      ambient .74 .74 .78 1
+      diffuse .74 .74 .78 1
+      specular 0.2 0.2 0.2 1
+    }
+  }
+}
+
+material HelloRobot/Black
+{
+  technique
+  {
+    pass ambient
+    {
+      lighting on
+
+      ambient .13 .13 .16 1
+      diffuse .13 .13 .16 1
+      specular 0.6 0.6 0.6 1
+    }
+  }
+}

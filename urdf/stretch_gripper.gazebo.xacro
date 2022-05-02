@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<robot name="stretch_gripper_gazebo" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="stretch-gripper-gazebo">
+    <xacro:include filename="$(find stretch_description)/urdf/stretch_gripper.xacro" />
+
+
+  <!-- Wrist IMU -->
+  <gazebo reference="link_wrist_yaw">
+    <gravity>true</gravity>
+    <sensor name="wrist_imu" type="imu">
+      <always_on>true</always_on>
+      <visualize>false</visualize>
+      <plugin name="imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+        <topicName>wrist_imu/data</topicName>
+        <bodyName>link_wrist_yaw</bodyName>
+        <updateRateHZ>25.0</updateRateHZ>
+        <gaussianNoise>0.001</gaussianNoise>
+        <xyzOffset>0 0 0</xyzOffset>
+        <rpyOffset>0 0 0</rpyOffset>
+        <frameName>link_wrist_yaw</frameName>
+        <initialOrientationAsReference>false</initialOrientationAsReference>
+      </plugin>
+      <pose>0 0 0 0 0 0</pose>
+    </sensor>
+  </gazebo>
+
+
+
+  <!-- Wrist -->
+  <gazebo reference="link_wrist_yaw">
+      <mu1 value="100.0"/>
+      <mu2 value="200.0"/>
+      <kp value="10000000.0" />
+      <kd value="100.0" />
+      <material>HelloRobot/Black</material>
+      <minDepth>0.001</minDepth>
+  </gazebo>
+
+  <transmission name="trans_wrist_yaw">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="motor_wrist_yaw" >
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="joint_wrist_yaw">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+  </transmission>
+
+
+  <!-- Gripper -->
+  <gazebo reference="link_gripper_finger_left">
+      <mu1 value="100.0"/>
+      <mu2 value="200.0"/>
+      <kp value="10000000.0" />
+      <kd value="100.0" />
+      <material>HelloRobot/LightGray</material>
+      <minDepth>0.001</minDepth>
+  </gazebo>
+
+  <gazebo reference="link_gripper_finger_right">
+      <mu1 value="100.0"/>
+      <mu2 value="200.0"/>
+      <kp value="10000000.0" />
+      <kd value="100.0" />
+      <material>HelloRobot/LightGray</material>
+      <minDepth>0.001</minDepth>
+  </gazebo>
+
+  <gazebo reference="link_grasp_center">
+      <mu1 value="100.0"/>
+      <mu2 value="200.0"/>
+      <kp value="10000000.0" />
+      <kd value="100.0" />
+      <material>HelloRobot/Black</material>
+      <minDepth>0.001</minDepth>
+  </gazebo>
+
+  <gazebo reference="link_gripper_fingertip_left">
+      <mu1 value="100.0"/>
+      <mu2 value="200.0"/>
+      <kp value="10000000.0" />
+      <kd value="100.0" />
+      <material>HelloRobot/Black</material>
+      <minDepth>0.001</minDepth>
+  </gazebo>
+
+  <gazebo reference="link_gripper_fingertip_right">
+      <mu1 value="100.0"/>
+      <mu2 value="200.0"/>
+      <kp value="10000000.0" />
+      <kd value="100.0" />
+      <material>HelloRobot/Black</material>
+      <minDepth>0.001</minDepth>
+  </gazebo>
+
+  <gazebo reference="link_gripper">
+      <mu1 value="100.0"/>
+      <mu2 value="200.0"/>
+      <kp value="10000000.0" />
+      <kd value="100.0" />
+      <material>HelloRobot/Black</material>
+      <minDepth>0.001</minDepth>
+  </gazebo>
+
+  <transmission name="trans_gripper_finger_left">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="motor_gripper_finger_left">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="joint_gripper_finger_left">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+  </transmission>
+  <transmission name="trans_gripper_finger_right">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="motor_gripper_finger_right">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="joint_gripper_finger_right">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+  </transmission>
+
+  <!--gazebo>
+     <plugin name="gazebo_grasp_fix" filename="libgazebo_grasp_fix.so">
+          <arm>
+             <arm_name>arm</arm_name>
+             <palm_link>link_wrist_yaw</palm_link>
+             <gripper_link>link_gripper_finger_right</gripper_link>
+             <gripper_link>link_gripper_finger_left</gripper_link>
+          </arm>
+         <forces_angle_tolerance>100</forces_angle_tolerance>
+         <update_rate>4</update_rate>
+         <grip_count_threshold>4</grip_count_threshold>
+         <max_grip_count>8</max_grip_count>
+         <release_tolerance>0.005</release_tolerance>
+         <disable_collisions_on_attach>false</disable_collisions_on_attach>
+         <contact_topic>__default_topic__</contact_topic>
+      </plugin>
+  </gazebo-->
+
+    <gazebo>
+      <plugin filename="libroboticsgroup_upatras_gazebo_mimic_joint_plugin.so" name="gripper_mimic1">
+        <joint>joint_gripper_finger_left</joint>
+        <mimicJoint>joint_gripper_finger_right</mimicJoint>
+        <multiplier>1.0</multiplier>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+</robot>
