@@ -2,5 +2,5 @@
     local-name: realsense_gazebo_plugin
     uri: https://github.com/pal-robotics/realsense_gazebo_plugin.git
 - git:
-    local-name: knowledge_representation
-    uri: https://github.com/utexas-bwi/knowledge_representation.git
+    local-name: gazebo-pkgs
+    uri: https://github.com/JenniferBuehler/gazebo-pkgs.git

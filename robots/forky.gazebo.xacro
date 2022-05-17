@@ -712,7 +712,7 @@
       <mu2 value="200.0"/>
       <kp value="10000000.0" />
       <kd value="100.0" />
-      <material>Gazebo/Gray</material>
+      <material>HelloRobot/Black</material>
       <minDepth>0.001</minDepth>
   </gazebo>
 

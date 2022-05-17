@@ -12,7 +12,9 @@ YCB object models are redistributed under CC BY 4.0.
 
 ## Installation
 
-In order to simulate the external head camera, you'll need to clone  [PAL Robotics' Gazebo plugin](https://github.com/pal-robotics/realsense_gazebo_plugin) into the workspace. To make sure you have the dependencies
+In order to simulate the external head camera, you'll need to clone  [PAL Robotics' Gazebo plugin](https://github.com/pal-robotics/realsense_gazebo_plugin) into the workspace. Because the gripper is poorly simulated, we also use [a "grasp hack" plugin](https://github.com/JenniferBuehler/gazebo-pkgs.git) provided by another package to attach objects to the gripper. 
+
+To make sure you have all the dependencies
 
     wstool init <path_to_workspace> <path_to_hcrl_gazebo>/.rosinstall
 
@@ -29,6 +31,14 @@ Launch one of the simulations with
     roslaunch hcrl_gazebo [house_simulation| playground_simulation].launch
 
 then launch whatever task specific nodes you need separately. Avoid having robot code depend on this package; there are a lot of large binary files in here, and we don't want to have to clone those to the robot (where we'll certainly never use them).
+
+### Stretch
+
+Clone and build our fork of `stretch_ros` in your workspace. This fork includes corrected collision geometry and inertial properties, as well as functioning navigation configurations.
+
+    roslaunch hcrl_gazebo house_simulation_stretch.launch
+    
+will launch the house and load "Forky", our lab's modified Stretch model, by default. You can toggle the dexwrist and teleop fisheye add-ons by modifying `spawn_stretch.xml`. If localization is performing poorly, you can enable fake localization in `stretch_navigation.launch`
 
 ### Spawning Objects
 
