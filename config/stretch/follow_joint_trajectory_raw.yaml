@@ -28,10 +28,10 @@ follow_joint_trajectory_raw:
     joint_head_pan: {p: 10, d: 1, i: 0, i_clamp: 1}
     joint_head_tilt: {p: 10, d: 1, i: 0, i_clamp: 1}
     joint_lift: {p: 12000, d: 200, i: 100, i_clamp: 1}
-    joint_arm_l3: {p: 1000, d: 0, i: 0, i_clamp: 1}
-    joint_arm_l2: {p: 1000, d: 0, i: 0, i_clamp: 1}
-    joint_arm_l1: {p: 1000, d: 0, i: 0, i_clamp: 1}
-    joint_arm_l0: {p: 1000, d: 0, i: 0, i_clamp: 1}
+    joint_arm_l3: {p: 2000, d: 40, i: 20, i_clamp: 1}
+    joint_arm_l2: {p: 2000, d: 40, i: 20, i_clamp: 1}
+    joint_arm_l1: {p: 2000, d: 40, i: 20, i_clamp: 1}
+    joint_arm_l0: {p: 2000, d: 40, i: 20, i_clamp: 1}
     joint_wrist_yaw: {p: 20, d: 1, i: 0, i_clamp: 1}
     joint_gripper_finger_right: {p: 20, d: 1, i: 0, i_clamp: 1}
     joint_gripper_finger_left: {p: 20, d: 1, i: 0, i_clamp: 1}
