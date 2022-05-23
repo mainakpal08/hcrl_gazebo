@@ -44,6 +44,8 @@
     <rosparam file="$(find stretch_navigation)/config/global_costmap_params_withmap.yaml" command="load" />
     <rosparam file="$(find stretch_navigation)/config/move_base.yaml" command="load" />
     <remap from="/cmd_vel" to="/stretch/cmd_vel" />
+    <!-- Real robot laser needs post processing, but sim laser is clean -->
+    <remap from="/scan_filtered" to="/scan" />
   </node>
 
 </launch>
