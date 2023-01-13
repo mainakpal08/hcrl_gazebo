@@ -417,8 +417,8 @@ void StretchHardwareGazebo::eStopActive(const bool active)
   e_stop_active_ = active;
 }
 
-bool StretchHardwareGazebo::setManipulationModeCB(std_srvs::SetBool::Request  &req,
-                                            std_srvs::SetBool::Response &res)
+bool StretchHardwareGazebo::setManipulationModeCB(std_srvs::Trigger::Request  &req,
+                                            std_srvs::Trigger::Response &res)
 {
   current_mode_ = MANIPULATION;
   res.success = true;
@@ -426,8 +426,8 @@ bool StretchHardwareGazebo::setManipulationModeCB(std_srvs::SetBool::Request  &r
   return true;
 }
 
-bool StretchHardwareGazebo::setNavigationModeCB(std_srvs::SetBool::Request  &req,
-                                                  std_srvs::SetBool::Response &res)
+bool StretchHardwareGazebo::setNavigationModeCB(std_srvs::Trigger::Request  &req,
+                                                  std_srvs::Trigger::Response &res)
 {
   current_mode_ = NAVIGATION;
   res.success = true;
@@ -435,8 +435,8 @@ bool StretchHardwareGazebo::setNavigationModeCB(std_srvs::SetBool::Request  &req
   return true;
 }
 
-bool StretchHardwareGazebo::setPositionModeCB(std_srvs::SetBool::Request  &req,
-                                                std_srvs::SetBool::Response &res)
+bool StretchHardwareGazebo::setPositionModeCB(std_srvs::Trigger::Request  &req,
+                                                std_srvs::Trigger::Response &res)
 {
   current_mode_ = POSITION_MODE;
   res.success = true;

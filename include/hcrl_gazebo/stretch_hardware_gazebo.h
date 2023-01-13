@@ -61,6 +61,7 @@
 #include <pluginlib/class_list_macros.h>
 #include <sensor_msgs/JointState.h>
 #include <std_srvs/SetBool.h>
+#include <std_srvs/Trigger.h>
 
 // gazebo_ros_control
 #include <gazebo_ros_control/robot_hw_sim.h>
@@ -108,14 +109,14 @@ protected:
                            int *const joint_type, double *const lower_limit,
                            double *const upper_limit, double *const effort_limit);
 
-  bool setManipulationModeCB(std_srvs::SetBool::Request  &req,
-                    std_srvs::SetBool::Response &res);
+  bool setManipulationModeCB(std_srvs::Trigger::Request  &req,
+                    std_srvs::Trigger::Response &res);
 
-  bool setNavigationModeCB(std_srvs::SetBool::Request  &req,
-                             std_srvs::SetBool::Response &res);
+  bool setNavigationModeCB(std_srvs::Trigger::Request  &req,
+                             std_srvs::Trigger::Response &res);
 
-  bool setPositionModeCB(std_srvs::SetBool::Request  &req,
-                             std_srvs::SetBool::Response &res);
+  bool setPositionModeCB(std_srvs::Trigger::Request  &req,
+                             std_srvs::Trigger::Response &res);
 
   void updateJointStates(const ros::TimerEvent& e);
 
