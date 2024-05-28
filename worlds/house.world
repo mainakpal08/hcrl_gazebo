@@ -716,6 +716,143 @@
         <pose frame=''>-2.396624 4.387607 0.502739 0 -0 0</pose>
 	</model>
 
+    <actor name="actor1">
+        <pose>0 0 1.2138 0 0 0</pose>
+        <skin>
+            <filename>moonwalk.dae</filename>
+            <scale>0.8</scale>
+        </skin>
+        <animation name="walking">
+            <filename>walk.dae</filename>
+            <scale>1.000000</scale>
+            <interpolate_x>true</interpolate_x>
+        </animation>
+        <plugin name="actor_plugin" filename="libgazebo_ros_actor_command.so">
+            <follow_mode>path</follow_mode>
+            <path_topic>/cmd_path_actor1</path_topic>
+            <animation_factor>4.0</animation_factor>
+            <linear_tolerance>0.1</linear_tolerance>
+            <linear_velocity>1</linear_velocity>
+            <angular_tolerance>0.0872</angular_tolerance>
+            <angular_velocity>2.5</angular_velocity>
+            <default_rotation>1.57</default_rotation>
+        </plugin>
+    </actor>
+
+    <actor name="actor2">
+        <pose>0 0 1.2138 0 0 0</pose>
+        <skin>
+            <filename>moonwalk.dae</filename>
+            <scale>0.8</scale>
+        </skin>
+        <animation name="walking">
+            <filename>walk.dae</filename>
+            <scale>1.000000</scale>
+            <interpolate_x>true</interpolate_x>
+        </animation>
+        <plugin name="actor_plugin" filename="libgazebo_ros_actor_command.so">
+            <follow_mode>path</follow_mode>
+            <path_topic>/cmd_path_actor2</path_topic>
+            <animation_factor>4.0</animation_factor>
+            <linear_tolerance>0.1</linear_tolerance>
+            <linear_velocity>1</linear_velocity>
+            <angular_tolerance>0.0872</angular_tolerance>
+            <angular_velocity>2.5</angular_velocity>
+            <default_rotation>1.57</default_rotation>
+        </plugin>
+    </actor>
+
+
+    <!--<actor name="actor0">
+        <pose>3 -3 0 0 0 0</pose>
+        <skin>
+            <filename>walk.dae</filename>
+            <scale>0.8</scale>
+        </skin>
+        <animation name="walking">
+            <filename>walk.dae</filename>
+            <scale>1.000000</scale>
+            <interpolate_x>true</interpolate_x>
+        </animation>
+
+        <plugin name="actor0_plugin" filename="libAutonomousActorPlugin.so">
+            <target_weight>2.5</target_weight>
+            <obstacle_weight>1.8</obstacle_weight>
+            <animation_factor>5.0</animation_factor>
+            <ignore_obstacles>
+                    <model>ground_plane</model>
+                    <model>AirconditionerA_01_001</model>
+                    <model>Chandelier_01_004</model>
+                    <model>CookingBench_01_001</model>
+                    <model>Curtain_01_001</model>
+                    <model>KitchenTable_01_001</model>
+                    <model>ReadingDesk_01_001</model>
+                    <model>BalconyTable_01_001</model>
+                    <model>Door_01_001</model>
+                    <model>Dumbbell_01_001</model>
+                    <model>Tablet_01_001</model>
+                    <model>FitnessEquipment_01_001</model>
+                    <model>FoldingDoor_01_001</model>
+                    <model>FoldingDoor_01_002</model>
+                    <model>Handle_01_001</model>
+                    <model>HouseWallB_01_001</model>
+                    <model>FloorB_01_001</model>
+                    <model>FoldingDoor_02_001</model>
+                    <model>FoldingDoor_02_002</model>
+                    <model>KitchenCabinet_01_001</model>
+                    <model>KitchenUtensils_01_001</model>
+                    <model>LightC_01_001</model>
+                    <model>LightC_01_002</model>
+                    <model>PortraitA_01</model>
+                    <model>PortraitB_01</model>
+                    <model>PortraitB_02</model>
+                    <model>PortraitB_03</model>
+                    <model>PortraitA_02</model>
+                    <model>PortraitC_01</model>
+                    <model>PortraitD_01</model>
+                    <model>PortraitD_02</model>
+                    <model>PortraitE_01</model>
+                    <model>PortraitE_02</model>
+                    <model>DeskPortraitA_01</model>
+                    <model>DeskPortraitA_02</model>
+                    <model>DeskPortraitC_01</model>
+                    <model>DeskPortraitD_01</model>
+                    <model>DeskPortraitD_04</model>
+                    <model>DeskPortraitB_02</model>
+                    <model>Rangehood_01_001</model>
+                    <model>Refrigerator_01_001</model>
+                    <model>SeasoningBox_01_001</model>
+                    <model>ShoeRack_01_001</model>
+                    <model>SofaC_01_001</model>
+                    <model>Tableware_01_001</model>
+                    <model>Trash_01_001</model>
+                    <model>Trash_01_002</model>
+                    <model>TV_01_001</model>
+                    <model>TV_02_001</model>
+                    <model>TVCabinet_01_001</model>
+                    <model>Vase_01_001</model>
+                    <model>RoomWall_01_001</model>
+                    <model>Wardrobe_01_001</model>
+                    <model>RoomWindow_01_002</model>
+                    <model>RoomWindow_01_003</model>
+                    <model>RoomWindow_01_004</model>
+                    <model>RoomWindow_01_005</model>
+                    <model>RoomWindow_01_006</model>
+                    <model>RoomWindow_01_007</model>
+                    <model>RoomWindow_01_008</model>
+                    <model>RoomWindow_01_009</model>
+
+            </ignore_obstacles>
+
+
+            <targets>
+                <target>-5 10 0</target>
+                <target>-10 1 0</target>
+                <target>-3 -4 0</target>
+            </targets>
+        </plugin>
+    </actor>-->
+
     <!-- Lights !-->
 
     <light name='LivingRoom_CeilingLight_0' type='point'>

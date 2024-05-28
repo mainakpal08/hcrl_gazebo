@@ -1,4 +1,5 @@
 <launch>
+  <param name="/use_sim_time" value="true" />
   <arg name="map_file" default="$(find hcrl_gazebo)/maps/house/map.yaml"/>
   <arg name="robot" default="forky"/>
   <arg name="use_navigation" default="true" />
